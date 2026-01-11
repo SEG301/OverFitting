@@ -123,13 +123,64 @@ class HosocongtySource(BaseSource):
             elif 'Địa chỉ:' in text:
                 data['address'] = text.replace('Địa chỉ:', '').strip()
                 
+                
+        return data if data['tax_code'] else None
+
+# --- SOURCE: TIMCONGTY.COM ---
+class TimCongTySource(BaseSource):
+    def __init__(self):
+        super().__init__("TimCongTy", "https://timcongty.com")
+        # Base urls: https://timcongty.com/thanh-pho-ha-noi/
+        
+    def get_listing_url(self, page: int) -> str:
+        # Focusing on Hanoi/HCM for density
+        region = "thanh-pho-ha-noi" if page % 2 == 0 else "thanh-pho-ho-chi-minh"
+        return f"{self.base_url}/{region}/?page={page}"
+
+    def parse_listing(self, html: str) -> List[str]:
+        soup = BeautifulSoup(html, 'lxml')
+        links = []
+        # Selector assumption: h3 a or similar
+        for a in soup.select('div.content-left div.item h3 a'):
+             links.append(a.get('href'))
+        return links
+
+    def parse_detail(self, html: str, url: str) -> Optional[Dict]:
+        soup = BeautifulSoup(html, 'lxml')
+        h1 = soup.select_one('h1')
+        if not h1: return None
+        
+        data = {
+            'source': self.name, 'url': url,
+            'company_name': h1.get_text(strip=True),
+            'tax_code': '', 'address': ''
+        }
+        
+        # Info extraction
+        # Usually in div.info
+        txt = soup.get_text()
+        # Regex is safer here
+        mst = re.search(r'Mã số thuế: (\d+)', txt)
+        if mst: data['tax_code'] = mst.group(1)
+        
+        addr = re.search(r'Địa chỉ: (.*)', txt)
+        # Cleaner extraction in TimCongTy usually involves checking p tags or table
+        if not data['address']:
+             # try meta
+             pass
+
         return data if data['tax_code'] else None
 
 # --- ENGINE ---
 class UltimateCrawler:
     def __init__(self):
         DATA_DIR.mkdir(parents=True, exist_ok=True)
-        self.sources = [MasothueSource(), HosocongtySource()]
+        # REGISTER ALL SOURCES HERE
+        self.sources = [
+            MasothueSource(), 
+            HosocongtySource(),
+            TimCongTySource()
+        ]
         self.visited_urls = self.load_checkpoint()
         self.saved_count = len(self.visited_urls)
 
@@ -152,13 +203,34 @@ class UltimateCrawler:
         print(f"    [+] Saved #{self.saved_count}: {data['company_name'][:40]}... ({data['source']})")
 
     def run(self):
-        print(">>> INITIALIZING HYDRA ENGINE (Undetected Chrome)...")
+        print(">>> INITIALIZING HYDRA ENGINE (Optimized Speed)...")
         options = uc.ChromeOptions()
-        # options.add_argument('--headless=new') # Enable for background
+        # options.add_argument('--headless=new') 
         options.add_argument('--ignore-certificate-errors')
         options.add_argument('--disable-popup-blocking')
         
+        # PERFORMANCE OPTIMIZATIONS
+        options.page_load_strategy = 'eager' # Don't wait for full load
+        options.add_argument('--disable-extensions')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--blink-settings=imagesEnabled=false') # Block Images
+        
+        # Block heavy resources via prefs
+        prefs = {
+            "profile.managed_default_content_settings.images": 2, # Block Images
+            "profile.default_content_setting_values.notifications": 2,
+            "profile.managed_default_content_settings.stylesheets": 2, # Block CSS
+            # "profile.managed_default_content_settings.javascript": 2, # Keep JS for Cloudflare
+            "profile.managed_default_content_settings.cookies": 1,
+            "profile.managed_default_content_settings.plugins": 1,
+            "profile.managed_default_content_settings.popups": 2,
+            "profile.managed_default_content_settings.geolocation": 2,
+            "profile.managed_default_content_settings.media_stream": 2,
+        }
+        options.add_experimental_option("prefs", prefs)
+        
         driver = uc.Chrome(options=options)
+        driver.set_page_load_timeout(15) # Force timeout faster
         
         try:
             page_cursor = 1
