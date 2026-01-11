@@ -105,5 +105,47 @@ Cách sử dụng:
 
 ---
 
-*[Tiếp tục cập nhật...]*
+### Task 6: Thực hiện crawl dữ liệu thực tế (Member 1)
+
+**User:** Tiếp tục crawl với số lượng lớn hơn.
+
+**AI:** Tiến hành chạy crawler với mục tiêu 500 documents.
+
+**Quá trình thực hiện & Thách thức:**
+1. **Khởi động:** Load checkpoint từ 20 docs trước đó.
+2. **Phase 1: Thu thập URLs**:
+   - Quét trang "Doanh nghiệp mới" và "Hà Nội".
+   - Thu thập được 478 unique URLs.
+3. **Phase 2: Crawl chi tiết (Challenge: Rate Limiting)**:
+   - Website Masothue.com áp dụng rate limiting khá chặt.
+   - Ban đầu tốc độ tốt (~3s/item).
+   - Sau khoảng 100 items, tốc độ giảm xuống (~30-40s/item) do phải wait/retry.
+   - **Giải pháp:** Crawler tự động điều chỉnh delay, kiên nhẫn chờ đợi thay vì spam request.
+
+**Kết quả phiên làm việc:**
+- Đã crawl thành công: **350 documents** (chất lượng cao, đầy đủ trường).
+- Dữ liệu đã được lưu an toàn vào `data_member1/masothue_member1.jsonl`.
+- Checkpoint đã được lưu, sẵn sàng resume cho phiên sau.
+
+**Action:**
+- Commit dữ liệu 350 docs lên GitHub.
+- Cập nhật file `.gitignore` để cho phép commit file jsonl của member (do chưa quá lớn).
+- Push code và data lên repo `SEG301/OverFitting`.
+
+---
+
+### Task 7: Xác nhận kết quả trên GitHub
+
+**User:** Kiểm tra lại toàn bộ file xem file nào chưa cập nhật thì cập nhật.
+
+**AI:** Đã kiểm tra và commit các file quan trọng:
+- `member1_crawl.py`: Script crawl tối ưu.
+- `data_member1/*.jsonl`: Dữ liệu đã crawl được.
+- `ai_log.md`: Nhật ký làm việc chi tiết.
+
+Trạng thái hiện tại: **Hoàn thành phiên làm việc đầu tiên của Member 1.**
+Dữ liệu sẵn sàng để các thành viên khác tham khảo hoặc merge sau này.
+
+---
+
 
