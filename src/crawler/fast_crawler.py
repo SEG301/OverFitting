@@ -146,47 +146,67 @@ class FastCrawler:
         await self.load_checkpoint()
         
         async with AsyncSession() as session:
-            # 1. Get Seeds (Listing Pages)
-            console.print("[yellow]Phase 1: Fetching Seed URLs...[/yellow]")
-            sources = [
-                "https://masothue.com/tra-cuu-ma-so-thue-doanh-nghiep-moi-thanh-lap",
-                "https://masothue.com/tra-cuu-ma-so-thue-theo-tinh/ha-noi-1"
-            ]
-            
-            for source in sources:
-                new_urls = await self.get_listing_urls(session, source, max_pages=50) # Scan 50 pages each
-                self.urls_to_crawl.extend(new_urls)
-            
-            # Dedup and Filter
-            self.urls_to_crawl = list(set(self.urls_to_crawl))
-            self.urls_to_crawl = [u for u in self.urls_to_crawl if u not in self.crawled_urls]
-            
-            console.print(f"[bold cyan]Queue size: {len(self.urls_to_crawl)} companies[/bold cyan]")
-            
-            # 2. Crawl Details
-            console.print("[yellow]Phase 2: Crawling Details with High Speed...[/yellow]")
-            
-            with Progress(
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                BarColumn(),
-                TaskProgressColumn(),
-                TimeRemainingColumn(),
-                console=console
-            ) as progress:
+            iteration = 0
+            while True:
+                iteration += 1
+                console.print(f"\n[bold magenta]=== BATCH {iteration} ===[/bold magenta]")
                 
-                task = progress.add_task("[green]Crawling...", total=len(self.urls_to_crawl))
+                # 1. Get Seeds (Listing Pages) - Scan next 50 pages randomly to avoid sticking to page 1
+                console.print("[yellow]Phase 1: Fetching Seed URLs...[/yellow]")
+                self.urls_to_crawl = []
                 
-                # Manual limiter: process chunks
-                chunk_size = 5 # Concurrency
+                sources = [
+                    "https://masothue.com/tra-cuu-ma-so-thue-doanh-nghiep-moi-thanh-lap",
+                    "https://masothue.com/tra-cuu-ma-so-thue-theo-tinh/ha-noi-1"
+                ]
                 
-                for i in range(0, len(self.urls_to_crawl), chunk_size):
+                # Randomize pages to scan diversity
+                start_page = random.randint(1, 200)
+                
+                for source in sources:
+                    # Scan 20 pages starting from random position
+                    page_url = f"{source}?page={start_page}"
+                    # Trick: we reuse get_listing but need to modify it slightly or just iterate here manually to be simpler
+                    # Let's just use existing logic but we need to pass start page. 
+                    # Simpler: Just Fetch 20 pages from current cursor
+                    
+                    for p in range(start_page, start_page + 20):
+                        url = f"{source}?page={p}"
+                        html = await self.fetch(session, url)
+                        if html and html != "RATE_LIMIT":
+                            soup = BeautifulSoup(html, 'lxml')
+                            for a in soup.select('a[href^="/"]'):
+                                href = a.get('href', '')
+                                if re.match(r'^/\d{10,13}', href):
+                                    full = f"https://masothue.com{href}"
+                                    if full not in self.crawled_urls:
+                                        self.urls_to_crawl.append(full)
+                        console.print(f"Scanned Page {p}", end="\r")
+                        await asyncio.sleep(0.5)
+
+                # Dedup
+                self.urls_to_crawl = list(set(self.urls_to_crawl))
+                self.urls_to_crawl = [u for u in self.urls_to_crawl if u not in self.crawled_urls]
+                
+                if not self.urls_to_crawl:
+                    console.print("[red]No new URLs found in this batch. Retrying in 10s...[/red]")
+                    await asyncio.sleep(10)
+                    continue
+                
+                console.print(f"[bold cyan]Queue size: {len(self.urls_to_crawl)} companies[/bold cyan]")
+                
+                # 2. Crawl Details
+                console.print("[yellow]Phase 2: Crawling Details...[/yellow]")
+                
+                # ... (Logic crawl cũ) ...
+                chunk_size = 10 # Increase concurrency
+                
+                total = len(self.urls_to_crawl)
+                completed = 0
+                
+                for i in range(0, total, chunk_size):
                     chunk = self.urls_to_crawl[i:i+chunk_size]
-                    
-                    tasks = []
-                    for url in chunk:
-                        tasks.append(self.fetch(session, url))
-                    
+                    tasks = [self.fetch(session, url) for url in chunk]
                     results = await asyncio.gather(*tasks)
                     
                     for idx, html in enumerate(results):
@@ -196,19 +216,19 @@ class FastCrawler:
                             if data:
                                 await self.save_result(data)
                                 self.crawled_urls.add(url)
-                                progress.advance(task)
+                                completed += 1
                         elif html == "RATE_LIMIT":
-                            console.print("[red]Rate Limit Hit! Cooling down 5s...[/red]")
+                            console.print("[red]Rate Limit! Sleeping 5s...[/red]")
                             await asyncio.sleep(5)
-
-                    if i % 100 == 0 and i > 0:
-                        await self.save_checkpoint()
-                        
-                    # Small delay between chunks to be nice, but much faster than before
+                    
+                    print(f"Crawled {completed}/{total}...", end="\r")
+                    
+                    if i % 100 == 0: await self.save_checkpoint()
                     await asyncio.sleep(0.5)
 
-        await self.save_checkpoint()
-        console.print("[bold green]DONE![/bold green]")
+                await self.save_checkpoint()
+                console.print("\n[green]Batch Complete. Taking a short break...[/green]")
+                await asyncio.sleep(5)
 
 if __name__ == "__main__":
     import sys

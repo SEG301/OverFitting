@@ -82,3 +82,24 @@
 
 ---
 **Trạng thái dự án:** Sẵn sàng Data Acquisition quy mô lớn.
+
+### Task 10: Quy trình Vận hành & Cứu hộ (Operations)
+
+**User:** Hỏi cách dừng crawler để nghỉ và chạy lại sau mà không mất dữ liệu.
+
+**AI Hướng dẫn:**
+1. **Cơ chế:** Crawler chạy background, lưu dữ liệu realtime (append) và checkpoint.
+2. **Dừng (Stop):**
+   - Sử dụng lệnh \Stop-Process -Name 'python' -Force\.
+   - Dữ liệu đã lưu an toàn trên đĩa.
+3. **Chạy lại (Resume):**
+   - Chạy lại lệnh khởi động crawler.
+   - Hệ thống tự động load \checkpoint_fast.json\, bỏ qua URL cũ, tiếp tục crawl URL mới.
+
+**Trạng thái hiện tại:**
+- Crawler đang chạy chế độ **Continuous Loop** (Bền bỉ).
+- Log được ghi ra file \crawler_v2.log\ để monitoring.
+- Dữ liệu đang đổ về \data_member1/masothue_fast.jsonl\.
+
+---
+
