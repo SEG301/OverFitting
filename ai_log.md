@@ -103,3 +103,39 @@
 
 ---
 
+
+---
+
+### Task 11: Mở rộng quy mô Crawl (National Scale)
+
+**User:** Yêu cầu crawler không giới hạn ở mức phân công team, mà chạy tối đa để đạt/vượt 1.000.000 docs.
+
+**AI Action:**
+1. **Dừng Crawler cũ:** Để nạp cấu hình mới.
+2. **Nâng cấp Code (`fast_crawler.py`):**
+   - Mở rộng nguồn (`SOURCES`) từ 2 nguồn lên **17 tỉnh thành trọng điểm** (HCM, Hà Nội, Đà Nẵng, Bình Dương, v.v.).
+   - Logic `random.sample` để crawler nhảy vùng ngẫu nhiên, tránh bị chặn theo dải IP vùng.
+   - Tăng phạm vi quét trang (`random.randint(1, 1000)`).
+3. **Khởi động lại:** Crawler phiên bản "Nationwide" đã chạy.
+
+**Mục tiêu:** Đạt >1 triệu unique docs trong thời gian ngắn nhất.
+
+
+---
+
+### Task 12: Ổn định hóa hệ thống (Final Stability)
+
+**User:** Xác nhận nguồn crawl hiện tại và kiểm tra tính ổn định.
+
+**AI Action & Debug:**
+1. **Sự cố 1 (Hosocongty):** Phát hiện trang này trả về nội dung rác (Page4Kids) khi bị scan mạnh -> Hủy bỏ phương án B.
+2. **Sự cố 2 (Masothue Crash):** Phát hiện crawler bị crash do lỗi `UnicodeEncodeError` khi in tên công ty tiếng Việt ra Console Windows -> **Đã Fix**.
+3. **Quyết định cuối cùng:** Quay lại crawl **Masothue.com (Nguồn Doanh Nghiệp Mới)** với cấu hình an toàn (Streaming Mode + Delay 2s).
+
+**Kết quả:**
+- Hệ thống đang chạy ổn định (File `crawler_final.log`).
+- Dữ liệu đang tăng đều đặn trong `data_member1/masothue_fast.jsonl`.
+- Đã bàn giao quy trình giám sát cho User.
+
+**SESSION END.**
+
