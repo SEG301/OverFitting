@@ -12,6 +12,13 @@ This project implements a high-performance web crawler to acquire business regis
 - **Vocabulary Size:** 393,194 words
 - **Average Document Length:** 19.24 words
 
+## 💾 Dataset Download
+Do dung lượng dữ liệu lớn (>800MB), chúng tôi lưu trữ Full Dataset trên Google Drive.
+
+👉 **Download Link:** [Full Dataset Milestone 1 (Google Drive)](https://drive.google.com/drive/folders/1XdAX7aw-ibpCniuHVyMNmUkD9JHv-dK-?usp=sharing)
+
+*File mẫu xem trước trên Github:* `data_sample/sample.jsonl` (50 records).
+
 ## Repository Structure
 ```
 SEG301-OverFitting/
@@ -22,7 +29,7 @@ SEG301-OverFitting/
 ├── docs/                    # Documentation & Reports
 │   └── Milestone1_Report.md
 ├── data_sample/             # Data samples for grading
-│   └── sample.jsonl         # Sample dataset (100 records)
+│   └── sample.jsonl         # Sample dataset
 └── src/                     # Source Code
     └── crawler/
         ├── speed_crawler.py # Multi-threaded Crawler
@@ -59,7 +66,7 @@ To merge, de-duplicate, and segment words:
 ```bash
 python src/crawler/final_process.py
 ```
-Output will be saved to `data/milestone1_final.jsonl`.
+Output will be saved to `data/milestone1_final.jsonl` (Local only, not git-tracked).
 
 ## Data Format (JSONL)
 Each line in the dataset represents a unique business record:
