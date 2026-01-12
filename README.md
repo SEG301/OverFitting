@@ -45,7 +45,8 @@ python src/crawler/ultimate_crawler.py
 *(Lưu ý: Chỉ chạy 1 worker để tránh bị khóa IP)*
 
 ## 📊 Results (Milestone 1)
-- **Total Records:** 2,267,000+
+- **Raw Data:** 3,100,000+ records.
+- **Unique Clean Records:** 800,000+ records (Deduplicated & Normalized).
 - **Format:** JSON Lines (.jsonl)
 - **Fields:** `company_name`, `tax_code`, `address`, `source`, `url`.
 

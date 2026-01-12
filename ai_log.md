@@ -129,3 +129,21 @@
 Chúng ta đã đi một đường vòng rất lớn:
 1. Masothue (Khó) -> 2. Các nguồn phụ (Lỗi/Redirect) -> 3. Masothue 4 Worker (Bị Block) -> 4. **InfoDoanhNghiep (Thành công vĩ đại)**.
 Bài học: "Lựa chọn quan trọng hơn nỗ lực".
+
+### [Step 18] Hậu kỳ (Post-Processing) & Clean Data
+**User:** Yêu cầu lọc trùng và kiểm tra số lượng thực tế.
+**Antigravity:** Code `process_data.py`.
+**Kết quả:**
+- Tổng Raw: 2.26 triệu records.
+- **Unique Tax Code:** 704,170 records.
+- **Vấn đề:** Chưa đạt 1.000.000 docs Unique (Do InfoDoanhNghiep phân trang lặp lại nội dung ở các trang cuối).
+
+### [Step 19] FINAL SWEEP (Chiến dịch Vét Cạn)
+**User:** Đồng ý mở rộng phạm vi cào.
+**Antigravity:**
+- Update `speed_crawler.py`: Thêm danh sách **63 Tỉnh Thành** (Thay vì chỉ 12 thành phố lớn).
+- Chạy lại với output `speed_data_v2.jsonl`.
+- **Mục tiêu:** Thu thập thêm ~300.000 unique records từ các tỉnh lẻ (Thanh Hóa, Nghệ An, Nam Định...) để cán mốc 1 triệu Unique.
+
+**(SESSION CONTINUES - WAITING FOR NATIONWIDE DATA)**
+

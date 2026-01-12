@@ -9,14 +9,21 @@ import re
 from datetime import datetime
 
 # --- CONFIG ---
+# --- CONFIG ---
 BASE_URL = "https://infodoanhnghiep.com"
 REGIONS = [
-    "Ha-Noi", "TP-Ho-Chi-Minh", "Da-Nang", "Hai-Phong", "Binh-Duong", "Dong-Nai",
-    "Bac-Ninh", "Hai-Duong", "Hung-Yen", "Vinh-Phuc", "Long-An", "Can-Tho"
+    # Top Cities
+    "Ha-Noi", "TP-Ho-Chi-Minh", "Da-Nang", "Hai-Phong", "Can-Tho",
+    # North
+    "Bac-Ninh", "Hai-Duong", "Hung-Yen", "Vinh-Phuc", "Quang-Ninh", "Thai-Binh", "Nam-Dinh", "Ninh-Binh", "Ha-Nam", "Phu-Tho", "Bac-Giang", "Thai-Nguyen", "Lang-Son", "Tuyen-Quang", "Yen-Bai", "Lao-Cai", "Ha-Giang", "Cao-Bang", "Bac-Kan", "Dien-Bien", "Lai-Chau", "Son-La", "Hoa-Binh",
+    # Central
+    "Thanh-Hoa", "Nghe-An", "Ha-Tinh", "Quang-Binh", "Quang-Tri", "Thua-Thien-Hue", "Quang-Nam", "Quang-Ngai", "Binh-Dinh", "Phu-Yen", "Khanh-Hoa", "Ninh-Thuan", "Binh-Thuan", "Kon-Tum", "Gia-Lai", "Dak-Lak", "Dak-Nong", "Lam-Dong",
+    # South
+    "Binh-Phuoc", "Tay-Ninh", "Binh-Duong", "Dong-Nai", "Ba-Ria-Vung-Tau", "Long-An", "Tien-Giang", "Ben-Tre", "Tra-Vinh", "Vinh-Long", "Dong-Thap", "An-Giang", "Kien-Giang", "Hau-Giang", "Soc-Trang", "Bac-Lieu", "Ca-Mau"
 ]
-MAX_PAGES = 10000 # Safety limit per region
-WORKERS = 30 # High concurrency
-OUTPUT_FILE = Path("data_member1/speed_data.jsonl")
+MAX_PAGES = 5000 # Adjusted for Full Sweep (Rural areas have fewer pages)
+WORKERS = 30 
+OUTPUT_FILE = Path("data_member1/speed_data_v2.jsonl") # New file to avoid mess
 
 # --- UTILS ---
 def clean_text(text):
