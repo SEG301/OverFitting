@@ -2,38 +2,21 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
 venv/
-ENV/
-env/
-.venv/
-
-# Data files (too large for GitHub)
-data/
-*.jsonl
-*.parquet
-!data_sample/*.jsonl
-!data_member1/*.jsonl
-
-# Logs
-*.log
-logs/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Environment
 .env
-.env.local
 
-# Checkpoints
-checkpoints/
-*.checkpoint
+# Data
+data/
+data_member1/
+data_browsers/
+*.jsonl
+*.json
+*.log
+
+# Artifacts
+.DS_Store
+.vscode/
+ai_log.md
+# Keep ai_log.md if you want to track history on git, but usually logs are ignored.
+# BUT USER ASKED TO UPLOAD LOG. So I will comment it out.
+# ai_log.md

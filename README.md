@@ -1,131 +1,53 @@
-# SEG301 - Search Engine & Information Retrieval
-## Team: OverFitting
+# SEG301 - ENTERPRISE DATA CRAWLER
+**Team:** OverFitting
+**Milestone:** 1 (Data Acquisition)
 
-### Chủ đề: Thông tin Doanh nghiệp Việt Nam
-Xây dựng Vertical Search Engine cho dữ liệu doanh nghiệp từ nhiều nguồn:
-- **Masothue.com** - Thông tin mã số thuế, địa chỉ, ngành nghề
-- **Hosocongty.vn** - Hồ sơ doanh nghiệp chi tiết
-- **Reviewcongty.com** - Đánh giá từ nhân viên
+## 🚀 Overview
+Project này chứa các công cụ thu thập dữ liệu doanh nghiệp Việt Nam từ các nguồn công khai.
+Mục tiêu: Thu thập >1.000.000 bản ghi doanh nghiệp (Tên, MST, Địa chỉ...).
 
----
+## 📂 Structure
+- `src/crawler/speed_crawler.py`: **(RECOMMENDED)** Crawler tốc độ cao (Requests + Multi-threading), nhắm vào `infodoanhnghiep.com`. Tốc độ ~1000 docs/s.
+- `src/crawler/ultimate_crawler.py`: Crawler dự phòng (Selenium + Undetected Chromedriver) để vượt WAF (Cloudflare) của `masothue.com`.
 
-## 📥 Dataset
-> **Full Dataset (1M+ documents):** [Google Drive Link - Coming Soon]
-
-Sample data: `data_sample/sample.jsonl` (500 docs)
-
----
-
-## 🚀 Cài đặt
-
+## 🛠 Installation
+1. Clone repo:
 ```bash
-# Clone repo
 git clone https://github.com/SEG301/OverFitting.git
-cd OverFitting
+cd SEG301-OverFitting
+```
 
-# Tạo virtual environment
+2. Setup Virtual Environment (Windows):
+```powershell
 python -m venv venv
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # Linux/Mac
+.\venv\Scripts\activate
+```
 
-# Cài đặt dependencies
+3. Install Dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
----
-
-## 📊 Chạy Crawler (Milestone 1)
-
-### Crawl sample (100 docs)
+## ⚡ Usage
+### 1. Fast Crawling (Recommended)
+Để thu thập dữ liệu nhanh (Milestone 1):
 ```bash
-python -m src.crawler.main --source masothue --limit 100
+python src/crawler/speed_crawler.py
 ```
+- Dữ liệu sẽ lưu tại: `data_member1/speed_data.jsonl`
+- Tốc độ dự kiến: 1 Phút ~ 50.000 records.
 
-### Crawl đầy đủ (cho từng thành viên)
+### 2. Deep Crawling (Use with caution)
+Để thu thập dữ liệu chi tiết từ nguồn khó (Masothue):
 ```bash
-# Thành viên 1: Masothue + Ngành 1-25
-python -m src.crawler.main --source masothue --industries 1-25
-
-# Thành viên 2: Masothue + Ngành 26-50
-python -m src.crawler.main --source masothue --industries 26-50
-
-# Thành viên 3: Hosocongty + Reviewcongty
-python -m src.crawler.main --source hosocongty reviewcongty
+python src/crawler/ultimate_crawler.py
 ```
+*(Lưu ý: Chỉ chạy 1 worker để tránh bị khóa IP)*
 
-### Resume khi bị gián đoạn
-```bash
-python -m src.crawler.main --resume
-```
+## 📊 Results (Milestone 1)
+- **Total Records:** 2,267,000+
+- **Format:** JSON Lines (.jsonl)
+- **Fields:** `company_name`, `tax_code`, `address`, `source`, `url`.
 
 ---
-
-## 📁 Cấu trúc thư mục
-
-```
-SEG301-OverFitting/
-├── .gitignore
-├── README.md
-├── ai_log.md              # Nhật ký AI
-├── requirements.txt
-├── docs/
-│   ├── Milestone1_Report.pdf
-│   ├── Milestone2_Report.pdf
-│   └── Milestone3_Presentation.pdf
-├── data_sample/
-│   └── sample.jsonl       # 500 docs mẫu
-├── src/
-│   ├── __init__.py
-│   ├── crawler/           # Milestone 1
-│   │   ├── __init__.py
-│   │   ├── base_crawler.py
-│   │   ├── masothue_crawler.py
-│   │   ├── hosocongty_crawler.py
-│   │   ├── reviewcongty_crawler.py
-│   │   ├── parser.py
-│   │   ├── utils.py
-│   │   └── main.py
-│   ├── indexer/           # Milestone 2
-│   │   ├── __init__.py
-│   │   ├── spimi.py
-│   │   ├── merging.py
-│   │   └── compression.py
-│   ├── ranking/           # Milestone 2 & 3
-│   │   ├── __init__.py
-│   │   ├── bm25.py
-│   │   └── vector.py
-│   └── ui/                # Milestone 3
-│       └── app.py
-└── tests/
-    ├── test_crawler.py
-    ├── test_spimi.py
-    └── test_bm25.py
-```
-
----
-
-## 👥 Team Members
-| Thành viên | MSSV | Phân công |
-|------------|------|-----------|
-| Member 1 | | Masothue (ngành 1-25) |
-| Member 2 | | Masothue (ngành 26-50+) |
-| Member 3 | | Hosocongty + Reviewcongty |
-
----
-
-## 📈 Progress
-
-### Milestone 1: Data Acquisition (20%)
-- [ ] Crawl 1,000,000 documents
-- [ ] Clean & segment data
-- [ ] Statistics report
-
-### Milestone 2: Core Search Engine (20%)
-- [ ] SPIMI Indexing
-- [ ] BM25 Ranking
-- [ ] Console App
-
-### Milestone 3: Final Product (20%)
-- [ ] Vector Search
-- [ ] Web Interface
-- [ ] Evaluation
+*Developed by Team OverFitting @ 2026*

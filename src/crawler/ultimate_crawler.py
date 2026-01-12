@@ -74,115 +74,245 @@ class MasothueSource(BaseSource):
         data = {
             'source': self.name, 'url': url,
             'company_name': h1.get_text(strip=True),
-            'tax_code': '', 'address': ''
+            'tax_code': '',
+            'address': '',
+            'representative': '',
+            'params': {}, # Extra info
+            'crawled_at': datetime.now().isoformat()
         }
         
         table = soup.select_one('table.table-taxinfo')
         if table:
             for row in table.select('tr'):
-                text = row.get_text(strip=True)
-                if 'Mã số thuế' in text:
-                    cols = row.select('td')
-                    if len(cols)>1: data['tax_code'] = cols[1].get_text(strip=True)
-                elif 'Địa chỉ' in text:
-                    cols = row.select('td')
-                    if len(cols)>1: data['address'] = cols[1].get_text(strip=True)
-        
-        return data if data['tax_code'] else None
-
-# --- SOURCE: HOSOCONGTY.VN ---
-class HosocongtySource(BaseSource):
-    def __init__(self):
-        super().__init__("Hosocongty", "https://hosocongty.vn/ha-noi-tp1")
-
-    def get_listing_url(self, page: int) -> str:
-        return f"{self.base_url}/page-{page}"
-
-    def parse_listing(self, html: str) -> List[str]:
-        soup = BeautifulSoup(html, 'lxml')
-        links = []
-        for h3 in soup.select('ul.hsdn li h3 a'):
-            links.append(h3.get('href'))
-        return links
-
-    def parse_detail(self, html: str, url: str) -> Optional[Dict]:
-        soup = BeautifulSoup(html, 'lxml')
-        h1 = soup.select_one('h1')
-        if not h1: return None
-        
-        data = {
-            'source': self.name, 'url': url,
-            'company_name': h1.get_text(strip=True),
-            'tax_code': '', 'address': ''
-        }
-        
-        for li in soup.select('ul.info li'):
-            text = li.get_text(strip=True)
-            if 'Mã số thuế:' in text:
-                data['tax_code'] = text.replace('Mã số thuế:', '').strip()
-            elif 'Địa chỉ:' in text:
-                data['address'] = text.replace('Địa chỉ:', '').strip()
+                cols = row.select('td')
+                if len(cols) < 2: continue
                 
+                key = cols[0].get_text(strip=True).lower()
+                val = cols[1].get_text(separator=' ', strip=True)
                 
+                if 'mã số thuế' in key:
+                    data['tax_code'] = val
+                elif 'địa chỉ' in key:
+                    data['address'] = val
+                elif 'đại diện pháp luật' in key:
+                    data['representative'] = val
+                elif 'ngày cấp' in key or 'ngày hoạt động' in key:
+                    data['params']['date_active'] = val
+                elif 'điện thoại' in key:
+                    data['params']['phone'] = val
+                elif 'quản lý bởi' in key:
+                    data['params']['manager'] = val
+
         return data if data['tax_code'] else None
 
 # --- SOURCE: TIMCONGTY.COM ---
 class TimCongTySource(BaseSource):
     def __init__(self):
         super().__init__("TimCongTy", "https://timcongty.com")
-        # Base urls: https://timcongty.com/thanh-pho-ha-noi/
         
     def get_listing_url(self, page: int) -> str:
-        # Focusing on Hanoi/HCM for density
+        # Format: https://timcongty.com/thanh-pho-ha-noi/?page=1
         region = "thanh-pho-ha-noi" if page % 2 == 0 else "thanh-pho-ho-chi-minh"
         return f"{self.base_url}/{region}/?page={page}"
 
-    def parse_listing(self, html: str) -> List[str]:
+    def parse_listing(self, html: str) -> List[any]:
+        # Returns List[Dict] (Listing Mode) for MAX SPEED
         soup = BeautifulSoup(html, 'lxml')
-        links = []
-        # Selector assumption: h3 a or similar
-        for a in soup.select('div.content-left div.item h3 a'):
-             links.append(a.get('href'))
-        return links
+        items = []
+        
+        # Structure Timcongty:
+        # div.content-left div.item
+        #   h3 a (Name, Url)
+        #   div.info (Tax code, Address...)
+        for div in soup.select('div.content-left div.item'):
+            h3 = div.select_one('h3 a')
+            if not h3: continue
+            
+            item = {
+                'source': self.name,
+                'url': h3.get('href'),
+                'company_name': h3.get_text(strip=True),
+                'tax_code': '', 'address': ''
+            }
+            
+            info = div.select_one('div.info')
+            if info:
+                text = info.get_text(separator=' ', strip=True)
+                # Regex MST
+                mst = re.search(r'Mã số thuế: (\d+)', text)
+                if mst: item['tax_code'] = mst.group(1)
+                
+                # Regex Address or split
+                if "Địa chỉ:" in text:
+                     addr_part = text.split("Địa chỉ:")[1]
+                     # Timcongty often puts Date after address or nothing
+                     item['address'] = addr_part.split('Ngày cấp:')[0].strip()
+
+            if item['tax_code']:
+                items.append(item)
+                
+        return items
 
     def parse_detail(self, html: str, url: str) -> Optional[Dict]:
-        soup = BeautifulSoup(html, 'lxml')
-        h1 = soup.select_one('h1')
-        if not h1: return None
-        
-        data = {
-            'source': self.name, 'url': url,
-            'company_name': h1.get_text(strip=True),
-            'tax_code': '', 'address': ''
-        }
-        
-        # Info extraction
-        # Usually in div.info
-        txt = soup.get_text()
-        # Regex is safer here
-        mst = re.search(r'Mã số thuế: (\d+)', txt)
-        if mst: data['tax_code'] = mst.group(1)
-        
-        addr = re.search(r'Địa chỉ: (.*)', txt)
-        # Cleaner extraction in TimCongTy usually involves checking p tags or table
-        if not data['address']:
-             # try meta
-             pass
+        return None
 
-        return data if data['tax_code'] else None
+# --- SOURCE: HOSOCONGTY.VN ---
+class HosocongtySource(BaseSource):
+    def __init__(self):
+        super().__init__("Hosocongty", "https://hosocongty.vn")
+        
+    def get_listing_url(self, page: int) -> str:
+        region = "ha-noi" if page % 2 == 0 else "tp-ho-chi-minh"
+        return f"{self.base_url}/{region}/page-{page}"
+
+    def parse_listing(self, html: str) -> List[any]:
+        # Returns List[Dict] (Direct Data) instead of Urls
+        soup = BeautifulSoup(html, 'lxml')
+        items = []
+        
+        # Structure Hosocongty listing:
+        # ul.hsdn li
+        #   h3 a (Name, Url)
+        #   div (Info: MST, Address...)
+        for li in soup.select('ul.hsdn li'):
+            h3 = li.select_one('h3 a')
+            if not h3: continue
+            
+            item = {
+                'source': self.name,
+                'url': h3.get('href'),
+                'company_name': h3.get_text(strip=True),
+                'tax_code': '', 'address': ''
+            }
+            
+            # Extract info from listing text
+            text = li.get_text(separator=' ', strip=True)
+            # Regex for Tax Code
+            mst_match = re.search(r'Mã số thuế:\s*(\d+)', text)
+            if mst_match: item['tax_code'] = mst_match.group(1)
+            
+            # Simple Address extraction (often after MST or specific label)
+            # But regex is tricky. Let's try basic split if labeled
+            # "Địa chỉ: ..."
+            if "Địa chỉ:" in text:
+                parts = text.split("Địa chỉ:")
+                if len(parts) > 1:
+                     # Take only until next label if any, or end of string
+                     addr = parts[1].split('Đại diện pháp luật:')[0].strip()
+                     item['address'] = addr
+
+            if item['tax_code']:
+                items.append(item)
+                
+        return items
+
+    def parse_detail(self, html: str, url: str) -> Optional[Dict]:
+        return None # Not used in Listing mode
 
 # --- ENGINE ---
+# --- ENGINE (MULTI-THREADED MASOTHUE ONLY) ---
+import concurrent.futures
+import multiprocessing
+
+class CrawlerWorker:
+    def __init__(self, source: BaseSource, shared_visited: set, worker_id: int, total_workers: int):
+        self.source = source
+        self.visited = shared_visited
+        self.worker_id = worker_id
+        self.total_workers = total_workers
+        
+    def log(self, msg):
+        print(f"[Worker {self.worker_id}] {msg}")
+
+    def save_data(self, data: Dict):
+        # Allow concurrent writes
+        with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(data, ensure_ascii=False) + '\n')
+        self.log(f"Saved: {data['company_name'][:30]}...")
+
+    def run(self):
+        # Create user data dir base
+        base_profile = Path("data_browsers")
+        base_profile.mkdir(parents=True, exist_ok=True)
+        
+        self.log(f"Starting Chrome (Profile: worker_{self.worker_id})...")
+        options = uc.ChromeOptions()
+        # options.add_argument('--headless=new') 
+        options.add_argument('--ignore-certificate-errors')
+        options.add_argument('--disable-popup-blocking')
+        options.add_argument(f'--user-data-dir={base_profile.absolute()}/worker_{self.worker_id}')
+        
+        options.page_load_strategy = 'eager'
+        options.add_argument('--disable-extensions')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--blink-settings=imagesEnabled=false')
+        
+        prefs = {
+            "profile.managed_default_content_settings.images": 2,
+            "profile.managed_default_content_settings.stylesheets": 2,
+            "profile.managed_default_content_settings.cookies": 1,
+            "profile.managed_default_content_settings.popups": 2,
+        }
+        options.add_experimental_option("prefs", prefs)
+        
+        driver = uc.Chrome(options=options)
+        driver.set_page_load_timeout(30)
+        
+        try:
+            # Stride Pattern
+            page = self.worker_id
+            
+            while True:
+                url = self.source.get_listing_url(page)
+                self.log(f"Loading Page {page}...")
+                
+                try:
+                    driver.get(url)
+                    
+                    if "Just a moment" in driver.title or "Page4Kids" in driver.title:
+                        self.log("Blocked. Sleep 60s...")
+                        time.sleep(60)
+                        continue
+                        
+                    time.sleep(3) # Wait Masothue
+                    
+                    links = self.source.parse_listing(driver.page_source)
+                    
+                    if not links:
+                        self.log("No links found.")
+                        if "404" in driver.title:
+                            self.log("Hit end of data?")
+                            break
+                        page += self.total_workers
+                        continue
+                        
+                    for link in links:
+                        if link in self.visited: continue
+                        try:
+                            driver.get(link)
+                            data = self.source.parse_detail(driver.page_source, link)
+                            if data:
+                                data['crawled_at'] = datetime.now().isoformat()
+                                self.save_data(data)
+                                self.visited.add(link)
+                        except Exception as e: self.log(f"Detail err: {e}")
+                    
+                    page += self.total_workers
+                    
+                except Exception as e:
+                    self.log(f"Page error: {e}")
+                    time.sleep(5)
+                    
+        finally:
+            driver.quit()
+
 class UltimateCrawler:
     def __init__(self):
         DATA_DIR.mkdir(parents=True, exist_ok=True)
-        # REGISTER ALL SOURCES HERE
-        self.sources = [
-            MasothueSource(), 
-            HosocongtySource(),
-            TimCongTySource()
-        ]
+        # STEALTH MODE: 1 WORKER ONLY
+        self.source_template = MasothueSource() 
         self.visited_urls = self.load_checkpoint()
-        self.saved_count = len(self.visited_urls)
+        self.num_workers = 1 
 
     def load_checkpoint(self) -> set:
         if CHECKPOINT_FILE.exists():
@@ -192,117 +322,21 @@ class UltimateCrawler:
             except: pass
         return set()
 
-    def save_checkpoint(self):
-        with open(CHECKPOINT_FILE, 'w') as f:
-            json.dump(list(self.visited_urls), f)
-
-    def save_data(self, data: Dict):
-        with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(data, ensure_ascii=False) + '\n')
-        self.saved_count += 1
-        print(f"    [+] Saved #{self.saved_count}: {data['company_name'][:40]}... ({data['source']})")
-
     def run(self):
-        print(">>> INITIALIZING HYDRA ENGINE (Optimized Speed)...")
-        options = uc.ChromeOptions()
-        # options.add_argument('--headless=new') 
-        options.add_argument('--ignore-certificate-errors')
-        options.add_argument('--disable-popup-blocking')
+        print(f">>> LAUNCHING STEALTH CRAWLER ({self.num_workers} Worker)...")
+        print("Note: Running slowly to avoid ban.")
         
-        # PERFORMANCE OPTIMIZATIONS
-        options.page_load_strategy = 'eager' # Don't wait for full load
-        options.add_argument('--disable-extensions')
-        options.add_argument('--disable-gpu')
-        options.add_argument('--blink-settings=imagesEnabled=false') # Block Images
-        
-        # Block heavy resources via prefs
-        prefs = {
-            "profile.managed_default_content_settings.images": 2, # Block Images
-            "profile.default_content_setting_values.notifications": 2,
-            "profile.managed_default_content_settings.stylesheets": 2, # Block CSS
-            # "profile.managed_default_content_settings.javascript": 2, # Keep JS for Cloudflare
-            "profile.managed_default_content_settings.cookies": 1,
-            "profile.managed_default_content_settings.plugins": 1,
-            "profile.managed_default_content_settings.popups": 2,
-            "profile.managed_default_content_settings.geolocation": 2,
-            "profile.managed_default_content_settings.media_stream": 2,
-        }
-        options.add_experimental_option("prefs", prefs)
-        
-        driver = uc.Chrome(options=options)
-        driver.set_page_load_timeout(15) # Force timeout faster
-        
-        try:
-            page_cursor = 1
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.num_workers) as executor:
+            futures = []
+            for i in range(self.num_workers):
+                # Start from Page 50 to avoid "Hot Zone"
+                worker = CrawlerWorker(MasothueSource(), self.visited_urls, 50, self.num_workers)
+                futures.append(executor.submit(worker.run))
             
-            while True:
-                # 1. Select Best Available Source
-                active_sources = [s for s in self.sources if s.is_ready()]
-                if not active_sources:
-                    print("  [!] All sources blocked. Sleeping 60s...")
-                    time.sleep(60)
-                    continue
-                
-                # Pick one (Round Robin or Random)
-                source = random.choice(active_sources)
-                print(f"\n[TARGET]: {source.name} | Page {page_cursor}")
-                
-                try:
-                    # 2. Fetch Listing
-                    driver.get(source.get_listing_url(page_cursor))
-                    
-                    # Anti-Bot Check
-                    if "Just a moment" in driver.title or "Page4Kids" in driver.title:
-                        source.mark_blocked(300) # Block 5 mins
-                        continue
-
-                    # Wait for content
-                    time.sleep(3) 
-                    
-                    # 3. Parse Listing
-                    links = source.parse_listing(driver.page_source)
-                    
-                    if not links:
-                        print(f"  [?] No links found on {source.name}. Maybe structure changed?")
-                        source.mark_blocked(60)
-                        continue
-                        
-                    print(f"  Found {len(links)} links. Processing...")
-                    
-                    # 4. Process Details
-                    new_items = 0
-                    for link in links:
-                        if link in self.visited_urls:
-                            continue
-                        
-                        driver.get(link)
-                        time.sleep(1) # Polite delay
-                        
-                        detail_data = source.parse_detail(driver.page_source, link)
-                        if detail_data:
-                            # Standardize Data
-                            detail_data['crawled_at'] = datetime.now().isoformat()
-                            self.save_data(detail_data)
-                            self.visited_urls.add(link)
-                            new_items += 1
-                        else:
-                            print(f"  [-] Failed to parse detail: {link}")
-                    
-                    if new_items > 0:
-                        self.save_checkpoint()
-                        source.reset_status()
-                    
-                    # Next page
-                    page_cursor += 1
-                    # Avoid predictable patterns
-                    time.sleep(random.uniform(2, 5))
-
-                except Exception as e:
-                    print(f"  [Error] {e}")
-                    source.mark_blocked(60)
-                    
-        finally:
-            driver.quit()
+            for future in concurrent.futures.as_completed(futures):
+                try: future.result()
+                except Exception as e: print(f"Worker died: {e}")
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     UltimateCrawler().run()
