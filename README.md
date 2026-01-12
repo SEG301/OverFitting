@@ -49,5 +49,27 @@ python src/crawler/ultimate_crawler.py
 - **Format:** JSON Lines (.jsonl)
 - **Fields:** `company_name`, `tax_code`, `address`, `source`, `url`.
 
+## 💾 Dataset Download
+Do dung lượng dữ liệu lớn (>500MB), chúng tôi chỉ upload file sample lên GitHub.
+**Download Full Dataset:** [INSERT_LINK_GOOGLE_DRIVE_HERE]
+
+File mẫu: `data/sample.jsonl` (50 records).
+
+## 📁 Repository Structure
+```
+SEG301-OverFitting/
+├── .gitignore
+├── README.md
+├── ai_log.md                # Nhật ký AI chi tiết
+├── requirements.txt
+├── docs/                    # Báo cáo
+├── data/
+│   └── sample.jsonl         # Dữ liệu mẫu
+└── src/
+    └── crawler/
+        ├── speed_crawler.py    # Main Crawler
+        └── ultimate_crawler.py # Backup Crawler
+```
+
 ---
 *Developed by Team OverFitting @ 2026*
