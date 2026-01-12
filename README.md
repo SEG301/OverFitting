@@ -1,76 +1,80 @@
-# SEG301 - ENTERPRISE DATA CRAWLER
-**Team:** OverFitting
-**Milestone:** 1 (Data Acquisition)
+# SEG301 - PROJECT MILESTONE 1
+**Topic:** Business Information Retrieval
+**Group:** OverFitting
 
-## 🚀 Overview
-Project này chứa các công cụ thu thập dữ liệu doanh nghiệp Việt Nam từ các nguồn công khai.
-Mục tiêu: Thu thập >1.000.000 bản ghi doanh nghiệp (Tên, MST, Địa chỉ...).
+## Project Overview
+This project implements a high-performance web crawler to acquire business registration data from public sources. The goal is to collect, clean, and standardize over 1,000,000 business records for building a Vertical Search Engine.
 
-## 📂 Structure
-- `src/crawler/speed_crawler.py`: **(RECOMMENDED)** Crawler tốc độ cao (Requests + Multi-threading), nhắm vào `infodoanhnghiep.com`. Tốc độ ~1000 docs/s.
-- `src/crawler/ultimate_crawler.py`: Crawler dự phòng (Selenium + Undetected Chromedriver) để vượt WAF (Cloudflare) của `masothue.com`.
+## Data Acquisition Statistics
+- **Source:** InfoDoanhNghiep
+- **Total Raw Records:** 8,177,481
+- **Total Unique Records:** 1,298,633 (De-duplicated by Tax Code & Name)
+- **Vocabulary Size:** 393,194 words
+- **Average Document Length:** 19.24 words
 
-## 🛠 Installation
-1. Clone repo:
-```bash
-git clone https://github.com/SEG301/OverFitting.git
-cd SEG301-OverFitting
+## Repository Structure
+```
+SEG301-OverFitting/
+├── .gitignore               # Git configuration
+├── README.md                # Project documentation
+├── ai_log.md                # AI Interaction Log (Audit trail)
+├── requirements.txt         # Python dependencies
+├── docs/                    # Documentation & Reports
+│   └── Milestone1_Report.md
+├── data_sample/             # Data samples for grading
+│   └── sample.jsonl         # Sample dataset (100 records)
+└── src/                     # Source Code
+    └── crawler/
+        ├── speed_crawler.py # Multi-threaded Crawler
+        └── final_process.py # Data Cleaning Pipeline
 ```
 
-2. Setup Virtual Environment (Windows):
-```powershell
-python -m venv venv
-.\venv\Scripts\activate
-```
+## Setup & Usage
 
-3. Install Dependencies:
-```bash
-pip install -r requirements.txt
-```
+### Prerequisites
+- Python 3.10+
+- Recommended: Visual Studio Code
 
-## ⚡ Usage
-### 1. Fast Crawling (Recommended)
-Để thu thập dữ liệu nhanh (Milestone 1):
+### Installation
+1. Clone the repository.
+2. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Running the Crawler
+To start the acquisition process (Nationwide sweep):
 ```bash
 python src/crawler/speed_crawler.py
 ```
-- Dữ liệu sẽ lưu tại: `data_member1/speed_data.jsonl`
-- Tốc độ dự kiến: 1 Phút ~ 50.000 records.
+*Note: The crawler uses 30 concurrent threads. Ensure stable network connection.*
 
-### 2. Deep Crawling (Use with caution)
-Để thu thập dữ liệu chi tiết từ nguồn khó (Masothue):
+### Data Processing
+To merge, de-duplicate, and segment words:
 ```bash
-python src/crawler/ultimate_crawler.py
+python src/crawler/final_process.py
 ```
-*(Lưu ý: Chỉ chạy 1 worker để tránh bị khóa IP)*
+Output will be saved to `data/milestone1_final.jsonl`.
 
-## 📊 Results (Milestone 1)
-- **Raw Data:** 3,100,000+ records.
-- **Unique Clean Records:** 800,000+ records (Deduplicated & Normalized).
-- **Format:** JSON Lines (.jsonl)
-- **Fields:** `company_name`, `tax_code`, `address`, `source`, `url`.
-
-## 💾 Dataset Download
-Do dung lượng dữ liệu lớn (>500MB), chúng tôi chỉ upload file sample lên GitHub.
-**Download Full Dataset:** [INSERT_LINK_GOOGLE_DRIVE_HERE]
-
-File mẫu: `data/sample.jsonl` (50 records).
-
-## 📁 Repository Structure
-```
-SEG301-OverFitting/
-├── .gitignore
-├── README.md
-├── ai_log.md                # Nhật ký AI chi tiết
-├── requirements.txt
-├── docs/                    # Báo cáo
-├── data/
-│   └── sample.jsonl         # Dữ liệu mẫu
-└── src/
-    └── crawler/
-        ├── speed_crawler.py    # Main Crawler
-        └── ultimate_crawler.py # Backup Crawler
+## Data Format (JSONL)
+Each line in the dataset represents a unique business record:
+```json
+{
+  "company_name": "CÔNG TY TNHH VÍ DỤ",
+  "tax_code": "0101234567",
+  "address": "Số 1, Đường A, Quận B, TP. Hà Nội",
+  "source": "InfoDoanhNghiep",
+  "url": "https://infodoanhnghiep.com/...",
+  "company_name_seg": "CÔNG_TY TNHH VÍ_DỤ",
+  "address_seg": "Số 1 , Đường A , Quận B , TP . Hà_Nội"
+}
 ```
 
 ---
-*Developed by Team OverFitting @ 2026*
+**Course:** SEG301 - Search Engines & Information Retrieval
+**Mileage:** Milestone 1 (Week 4)
