@@ -1,87 +1,49 @@
-# SEG301 - PROJECT MILESTONE 1
-**Topic:** Business Information Retrieval
-**Group:** OverFitting
+# SEG301 - Vertical Search Engine (Topic 3: Thông tin Doanh nghiệp)
 
-## Project Overview
-This project implements a high-performance web crawler to acquire business registration data from public sources. The goal is to collect, clean, and standardize over 1,000,000 business records for building a Vertical Search Engine.
+Dự án xây dựng công cụ tìm kiếm doanh nghiệp và đánh giá (Review) quy mô lớn phục vụ môn học SEG301.
 
-## Data Acquisition Statistics
-- **Source:** InfoDoanhNghiep
-- **Total Raw Records:** 8,177,481
-- **Total Unique Records:** 1,298,633 (De-duplicated by Tax Code & Name)
-- **Vocabulary Size:** 393,194 words
-- **Average Document Length:** 19.24 words
+## 1. Thành viên nhóm
+- [Thành viên 1]
+- [Thành viên 2]
+- [Thành viên 3]
 
-## 💾 Dataset Download
-Do dung lượng dữ liệu lớn (>800MB), chúng tôi lưu trữ Full Dataset trên Google Drive.
+## 2. Cấu trúc thư mục (Github Structure)
+Dự án tuân thủ nghiêm ngặt cấu trúc thư mục yêu cầu:
+- `.gitignore`: Bỏ qua dữ liệu lớn và môi trường ảo.
+- `README.md`: Hướng dẫn này.
+- `ai_log.md`: Nhật ký tương tác với trợ lý AI.
+- `requirements.txt`: Các thư viện Python cần thiết.
+- `docs/`: Thư mục chứa báo cáo Milestones.
+- `data_sample/`: Chứa 100-500 dòng dữ liệu mẫu để kiểm tra.
+- `src/`: Mã nguồn chính.
+    - `crawler/`: Milestone 1 (spider, parser, utils).
+    - `indexer/`: Milestone 2 (Placeholder).
+    - `ranking/`: Milestone 2/3 (Placeholder).
+    - `ui/`: Milestone 3 (Placeholder).
 
-👉 **Download Link:** [Full Dataset Milestone 1 (Google Drive)](https://drive.google.com/drive/folders/1XdAX7aw-ibpCniuHVyMNmUkD9JHv-dK-?usp=sharing)
+## 3. Milestone 1: Data Acquisition
+Dữ liệu được thu thập từ nguồn **infodoanhnghiep.com** và **1900.com.vn**.
 
-*File mẫu xem trước trên Github:* `data_sample/sample.jsonl` (50 records).
+### Kỹ thuật thực hiện:
+- **Ngôn ngữ**: Python 3.
+- **Thư viện**: `requests`, `BeautifulSoup4` (parser), `pyvi` (Vietnamese Word Segmentation).
+- **Đa luồng**: Sử dụng `ThreadPoolExecutor` với 50 workers để tối ưu tốc độ.
+- **Cơ chế Resume**: Tự động nhận diện checkpoint từ file dữ liệu đã có để cào tiếp mà không bị trùng.
+- **Xử lý trang cuối**: Tự động phát hiện redirect của server để dừng quét trang.
 
-## Repository Structure
-```
-SEG301-OverFitting/
-├── .gitignore               # Git configuration
-├── README.md                # Project documentation
-├── ai_log.md                # AI Interaction Log (Audit trail)
-├── requirements.txt         # Python dependencies
-├── docs/                    # Documentation & Reports
-│   └── Milestone1_Report.md
-├── data_sample/             # Data samples for grading
-│   └── sample.jsonl         # Sample dataset
-└── src/                     # Source Code
-    └── crawler/
-        ├── speed_crawler.py # Multi-threaded Crawler
-        └── final_process.py # Data Cleaning Pipeline
-```
-
-## Setup & Usage
-
-### Prerequisites
-- Python 3.10+
-- Recommended: Visual Studio Code
-
-### Installation
-1. Clone the repository.
-2. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: .\venv\Scripts\activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-### Running the Crawler
-To start the acquisition process (Nationwide sweep):
+### Cách chạy Crawler:
 ```bash
-python src/crawler/speed_crawler.py
-```
-*Note: The crawler uses 30 concurrent threads. Ensure stable network connection.*
+# Cài đặt thư viện
+pip install -r requirements.txt
 
-### Data Processing
-To merge, de-duplicate, and segment words:
-```bash
-python src/crawler/final_process.py
-```
-Output will be saved to `data/milestone1_final.jsonl` (Local only, not git-tracked).
-
-## Data Format (JSONL)
-Each line in the dataset represents a unique business record:
-```json
-{
-  "company_name": "CÔNG TY TNHH VÍ DỤ",
-  "tax_code": "0101234567",
-  "address": "Số 1, Đường A, Quận B, TP. Hà Nội",
-  "source": "InfoDoanhNghiep",
-  "url": "https://infodoanhnghiep.com/...",
-  "company_name_seg": "CÔNG_TY TNHH VÍ_DỤ",
-  "address_seg": "Số 1 , Đường A , Quận B , TP . Hà_Nội"
-}
+# Chạy crawler chính
+python -m src.crawler.spider
 ```
 
----
-**Course:** SEG301 - Search Engines & Information Retrieval
-**Mileage:** Milestone 1 (Week 4)
+### Dữ liệu:
+- **Số lượng**: Mục tiêu 1.000.000 documents.
+- **Định dạng**: JSONL (Json Lines).
+- **Full Dataset Download**: [Cập nhật link Drive/OneDrive tại đây]
+
+## 4. Nhật ký AI (ai_log.md)
+Toàn bộ quá trình giải quyết lỗi, refactor code và tối ưu hóa crawler đều được lưu lại trong `ai_log.md` theo yêu cầu minh bạch của đồ án.

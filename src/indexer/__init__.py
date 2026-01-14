@@ -1,1 +1,1 @@
-# SEG301 Indexer Module (Milestone 2)
+# Milestone 2/3 Placeholder

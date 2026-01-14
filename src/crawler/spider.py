@@ -16,7 +16,7 @@ WORKERS = 50
 OUTPUT_FILE = Path("data/milestone1_final_full.jsonl")
 
 # --- GLOBAL STATE (Thread-Safe Deduplication) ---
-SEEN_RECORDS = set() # Store (tax_code, company_name)
+SEEN_RECORDS = set() # Store (tax_code) or (tax, name, addr)
 LOCK = threading.Lock()
 TOTAL_UNIQUE = 0
 
@@ -41,7 +41,7 @@ def crawling_job(region, page):
         if is_empty_page(resp.text):
             return "END_OF_PAGE"
 
-        # Parsing using modular parser
+        # Parsing
         raw_items = parse_company_list(resp.text, base_url=BASE_URL)
         
         # Deduplication
@@ -76,12 +76,12 @@ def load_checkpoint():
         TOTAL_UNIQUE = count
         print(f"Checkpoint loaded: {count} unique records.")
 
-def run_speed_crawler():
+def start_spider():
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     load_checkpoint()
     
-    print(f"\n>>> SPEED CRAWLER V4 (MODULAR VERSION)")
-    print(f">>> WORKERS: {WORKERS}")
+    print(f"\n--- CORE SPIDER STARTING ---")
+    print(f"Workers: {WORKERS} | Target Source: {BASE_URL}")
     
     global TOTAL_UNIQUE
     
@@ -122,4 +122,4 @@ def run_speed_crawler():
                 if page > 50000: break
 
 if __name__ == "__main__":
-    run_speed_crawler()
+    start_spider()

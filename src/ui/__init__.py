@@ -1,1 +1,1 @@
-# SEG301 UI Module (Milestone 3)
+# Milestone 2/3 Placeholder

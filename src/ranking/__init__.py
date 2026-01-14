@@ -1,1 +1,1 @@
-# SEG301 Ranking Module (Milestone 2 & 3)
+# Milestone 2/3 Placeholder
