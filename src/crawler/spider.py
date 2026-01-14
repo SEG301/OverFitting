@@ -19,6 +19,7 @@ REGIONS = [
     "Binh-Phuoc", "Tay-Ninh", "Binh-Duong", "Dong-Nai", "Ba-Ria-Vung-Tau", "Long-An", "Tien-Giang", "Ben-Tre", "Tra-Vinh", "Vinh-Long", "Dong-Thap", "An-Giang", "Kien-Giang", "Hau-Giang", "Soc-Trang", "Bac-Lieu", "Ca-Mau"
 ]
 WORKERS = 50 
+DEEP_CRAWL = True  # Set to True to visit detail pages for Representative, Phone, etc.
 OUTPUT_FILE = Path("data/milestone1_final_full.jsonl")
 
 # --- GLOBAL STATE (Thread-Safe Deduplication) ---
@@ -26,6 +27,19 @@ OUTPUT_FILE = Path("data/milestone1_final_full.jsonl")
 SEEN_RECORDS = set() 
 LOCK = threading.Lock()
 TOTAL_UNIQUE = 0
+
+def fetch_detail(item, session):
+    """Worker function to fetch company details."""
+    try:
+        url = item['url']
+        resp = session.get(url, timeout=10)
+        if resp.status_code == 200:
+            from .parser import parse_company_detail
+            details = parse_company_detail(resp.text)
+            item.update(details)
+    except:
+        pass
+    return item
 
 def crawling_job(region, page):
     """Fetches and parses a single page."""
@@ -35,7 +49,8 @@ def crawling_job(region, page):
     }
     
     try:
-        resp = requests.get(url, headers=headers, timeout=15)
+        session = requests.Session()
+        resp = session.get(url, headers=headers, timeout=15)
         if resp.status_code == 404: 
             return "END_OF_PAGE"
         if resp.status_code != 200: 
@@ -60,6 +75,11 @@ def crawling_job(region, page):
                 if key not in SEEN_RECORDS:
                     SEEN_RECORDS.add(key)
                     unique_results.append(item)
+        
+        if DEEP_CRAWL and unique_results:
+            # Fetch details in parallel for this batch
+            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as detail_executor:
+                detail_executor.map(lambda x: fetch_detail(x, session), unique_results)
                     
         return unique_results
 

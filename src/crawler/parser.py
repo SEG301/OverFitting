@@ -76,6 +76,55 @@ def parse_company_list(html_content, base_url=""):
             
     return results
 
+def parse_company_detail(html_content):
+    """
+    Parses the company detail page.
+    Extracts: Representative, Phone, Status, Founded Date, Detailed Industry List.
+    """
+    soup = BeautifulSoup(html_content, 'lxml')
+    data = {}
+    
+    # Representative
+    founder = soup.select_one('[itemprop="founder"] [itemprop="name"]')
+    if founder:
+        data['representative'] = normalize_text(founder.get_text(strip=True))
+    
+    # Phone
+    phone = soup.find(itemprop="telephone")
+    if phone:
+        data['phone'] = normalize_text(phone.get_text(strip=True))
+    
+    # Table Info (Status, Founded Date)
+    cells = soup.select('.responsive-table-cell-head')
+    for cell in cells:
+        label = cell.get_text(strip=True)
+        value_cell = cell.find_next_sibling(class_="responsive-table-cell")
+        if not value_cell:
+            continue
+        
+        value = normalize_text(value_cell.get_text(strip=True))
+        if "Tình trạng hoạt động" in label:
+            data['status'] = value
+        elif "Ngày cấp" in label:
+            data['founded_date'] = value
+
+    # Detailed Industries
+    industries = []
+    ind_table = soup.select_one('.nnkd-table')
+    if ind_table:
+        rows = ind_table.select('.responsive-table-row')
+        for row in rows:
+            code_cell = row.select_one('.responsive-table-cell-head')
+            name_cell = row.select_one('.responsive-table-cell')
+            if code_cell and name_cell:
+                industries.append({
+                    'code': normalize_text(code_cell.get_text(strip=True)),
+                    'name': normalize_text(name_cell.get_text(strip=True))
+                })
+    data['industries_detail'] = industries
+    
+    return data
+
 def is_empty_page(html_content):
     """Detects if the page has no data based on site-specific markers."""
     return "Không tìm thấy" in html_content

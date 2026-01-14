@@ -7,7 +7,10 @@
 - **Dung lượng file**: ~1.02 GB (.jsonl).
 
 ## 2. Nguồn dữ liệu
-- **infodoanhnghiep.com**: Nguồn dữ liệu chính cho thông tin doanh nghiệp (Tên, MST, Địa chỉ).
+- **infodoanhnghiep.com**: Nguồn dữ liệu chính cho thông tin doanh nghiệp.
+- **Dữ liệu thu thập được bao gồm**:
+    - Thông tin bề nổi: Tên công ty, Mã số thuế, Địa chỉ đăng ký.
+    - **Thông tin chuyên sâu (Deep Data)**: Người đại diện pháp luật, Tình trạng hoạt động, Số điện thoại (nếu có), Ngày cấp GCN và Danh sách đầy đủ các ngành nghề kinh doanh.
 
 ## 3. Quy trình kỹ thuật
 ### 3.1. Crawling ( spider.py )
