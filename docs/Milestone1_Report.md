@@ -1,32 +1,34 @@
 # BÁO CÁO MILESTONE 1: THU THẬP DỮ LIỆU (DATA ACQUISITION)
 
 ## 1. Thông tin chung
-- **Chủ đề**: Thông tin Doanh nghiệp & Đánh giá (Topic 3).
-- **Mục tiêu**: Thu thập 1.000.000 documents sạch, đã được tách từ tiếng Việt.
+- **Chủ đề**: Thông tin Doanh nghiệp (Topic 3).
+- **Mục tiêu**: Thu thập tối thiểu 1.000.000 documents sạch, đã được tách từ tiếng Việt.
+- **Kết quả thực tế**: Đã thu thu thập được **1.848.043** documents (Vượt 84% so với chỉ tiêu).
+- **Dung lượng file**: ~1.02 GB (.jsonl).
 
 ## 2. Nguồn dữ liệu
-1. **infodoanhnghiep.com**: Cung cấp thông tin nền tảng (Tên, MST, Địa chỉ).
-2. **1900.com.vn**: Cung cấp dữ liệu đánh giá (Reviews) chi tiết (Ưu điểm, nhược điểm, rating).
+- **infodoanhnghiep.com**: Nguồn dữ liệu chính cho thông tin doanh nghiệp (Tên, MST, Địa chỉ).
 
 ## 3. Quy trình kỹ thuật
 ### 3.1. Crawling ( spider.py )
 - **Kỹ thuật**: `requests` + `BeautifulSoup4`.
-- **Hiệu năng**: Triển khai đa luồng (`ThreadPoolExecutor`) với **50 workers**.
-- **Cơ chế Resume**: Crawler lưu checkpoint vào file JSONL, khi chạy lại sẽ tự động bỏ qua các bản ghi đã tồn tại.
-- **Xử lý Pagination**: Tự động nhận diện redirect khi vượt quá số trang cho phép của server để dừng quét chính xác.
+- **Đa luồng**: Triển khai `ThreadPoolExecutor` với **50 workers**.
+- **Cơ chế Resume**: Kiểm tra dữ liệu đã có trong file JSONL để nạp vào bộ nhớ trước khi cào, giúp tránh trùng lặp khi khởi động lại.
+- **Xử lý Pagination**: Phát hiện cơ chế redirect của server khi hết trang (Soft Redirect) để dừng crawler đúng lúc, tránh vòng lặp vô tận.
 
-### 3.2. Cleaning ( parser.py )
-- **Regex**: Trích xuất chính xác Mã số thuế và Địa chỉ từ các khối văn bản thô.
-- **Deduplication**: Lọc trùng lặp ngay trong quá trình cào dựa trên `tax_code` và `company_name`.
-- **Word Segmentation**: Sử dụng thư viện `PyVi` để tách từ tiếng Việt cho trường `company_name_seg` và `address_seg`.
+### 3.2. Cleaning & Word Segmentation ( parser.py )
+- **Deduplication**: Lọc trùng dựa trên bộ khóa `(tax_code, company_name)`.
+- **Word Segmentation (Tách từ)**: Sử dụng thư viện `PyVi` để thực hiện tách từ tiếng Việt.
 
-## 4. Thống kê dữ liệu
-- **Tổng số bản ghi**: ~15,000+ (đang tiếp tục cào).
-- **Định dạng**: JSONL.
-- **Chất lượng**: 100% bản ghi có Mã số thuế hợp lệ, không lỗi font UTF-8.
+## 4. Tại sao cần Word Segmentation (Tách từ)?
+Trong tiếng Việt, khoảng trắng không phải lúc nào cũng ngăn cách các từ đơn lẻ (ví dụ: "Sách giáo khoa" là 1 từ ghép nhưng có 2 khoảng trắng).
+- **Tăng độ chính xác (Precision)**: Giúp máy tìm kiếm hiểu "Công ty" là một thực thể chứ không phải hai từ "Công" và "ty" riêng lẻ.
+- **Tối ưu hóa Index**: Khi thực hiện Milestone 2 (Indexing), việc lưu trữ các từ đã tách (`cong_ty`, `tnhh`) giúp thuật toán tìm kiếm (BM25) hoạt động hiệu quả hơn, trả về kết quả sát với ngữ nghĩa của người dùng nhất.
+- **Yêu cầu đồ án**: Đây là tiêu chí bắt buộc để đánh giá chất lượng xử lý dữ liệu của Milestone 1.
 
 ## 5. Cấu trúc thư mục Github
-Đã tổ chức dự án theo đúng chuẩn yêu cầu:
-- `src/crawler/`: Chứa toàn bộ mã nguồn thu thập dữ liệu.
-- `data_sample/`: Chứa file mẫu `sample.jsonl`.
-- `ai_log.md`: Nhật ký sử dụng AI minh bạch.
+Dự án được tổ chức module hóa theo yêu cầu:
+- `src/crawler/spider.py`: Quản lý luồng và điều hướng.
+- `src/crawler/parser.py`: Trích xuất dữ liệu và tách từ.
+- `src/crawler/utils.py`: Các hàm tiện ích chuẩn hóa văn bản.
+- `data_sample/sample.jsonl`: Chứa 100 bản ghi mẫu.
