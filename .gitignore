@@ -16,7 +16,7 @@ data_browsers/
 # Artifacts
 .DS_Store
 .vscode/
-ai_log.md
+# ai_log.md
 # Keep ai_log.md if you want to track history on git, but usually logs are ignored.
 # BUT USER ASKED TO UPLOAD LOG. So I will comment it out.
 # ai_log.md

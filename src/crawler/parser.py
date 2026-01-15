@@ -108,18 +108,24 @@ def parse_company_detail(html_content):
         elif "Ngày cấp" in label:
             data['founded_date'] = value
 
-    # Detailed Industries
+    # Detailed Industries (Robust flat structure)
     industries = []
     ind_table = soup.select_one('.nnkd-table')
     if ind_table:
-        rows = ind_table.select('.responsive-table-row')
-        for row in rows:
-            code_cell = row.select_one('.responsive-table-cell-head')
-            name_cell = row.select_one('.responsive-table-cell')
-            if code_cell and name_cell:
+        # Find all code cells (they have the head class)
+        code_cells = ind_table.select('.responsive-table-cell.responsive-table-cell-head')
+        for code_cell in code_cells:
+            code_text = normalize_text(code_cell.get_text(strip=True))
+            if code_text == "Mã" or not code_text: 
+                continue # Skip header or empty
+                
+            # The name cell is the next sibling div with the basic class
+            name_cell = code_cell.find_next_sibling('div', class_='responsive-table-cell')
+            if name_cell:
+                name_text = normalize_text(name_cell.get_text(strip=True))
                 industries.append({
-                    'code': normalize_text(code_cell.get_text(strip=True)),
-                    'name': normalize_text(name_cell.get_text(strip=True))
+                    'code': code_text,
+                    'name': name_text
                 })
     data['industries_detail'] = industries
     

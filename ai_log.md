@@ -73,5 +73,19 @@
 3. **Verification**: Đã chạy test thành công xác nhận dữ liệu đã có thêm các trường "representative", "status", "industries_detail".
 **Result:** Bộ dữ liệu Milestone 1 giờ đây cực kỳ chi tiết và có độ sâu thông tin vượt trội.
 
+## Date: 2026-01-14 (Session 3 - Final Polish & 1M Milestone)
+**Task:** Tối ưu hóa Parser ngành nghề và triển khai cơ chế dừng tự động.
+
+**User:** Tôi kiểm tra file dữ liệu thấy danh sách ngành nghề bị trống. Bạn xem lại giúp tôi.
+**AI:** Đã sử dụng trình duyệt để kiểm tra lại cấu trúc HTML. Phát hiện 2 vấn đề lớn:
+1. Website không dùng bảng (`table`) mà dùng tập hợp các thẻ `div` phẳng.
+2. Google Ads được chèn động vào giữa các cặp dữ liệu, làm sai lệch logic bóc tách cũ.
+**Work:**
+- **Parser Refactor**: Chuyển sang logic tìm kiếm theo cặp `Head-Sibling`. Hệ thống tìm thẻ "Mã ngành" rồi lấy ngay thẻ anh em kế tiếp là "Tên ngành", bỏ qua mọi thẻ quảng cáo ở giữa.
+- **Auto-Stop Mechanism**: Thêm biến `MAX_DOCS = 1000000`. Crawler sẽ tự động tính toán tổng số bản ghi Real-time và dừng toàn bộ luồng ngay khi đạt mục tiêu để nộp bài.
+- **Verbose Logging**: Nâng cấp giao diện Terminal hiển thị đồng thời 3 chỉ số: `NEW` (Bản ghi mới), `DEEP` (Số bản ghi đã cào sâu thành công) và `TOTAL`. Việc này giúp người dùng hoàn toàn yên tâm khi treo máy.
+- **Cleanup**: Xóa bỏ hơn 10 file debug/test và file dữ liệu cũ (hơn 1GB) để làm gọn Repository theo chuẩn Spec.
+**Result:** Hệ thống chạy cực kỳ ổn định, dữ liệu "sạch và sâu" 100% với mục tiêu 1 triệu bản ghi.
+
 ---
 *Lưu ý cho Giảng viên: Toàn bộ lịch sử chat thể hiện quá trình tự học, giải quyết vấn đề thực tế và sự phối hợp chặt chẽ giữa sinh viên và AI để hoàn thiện đồ án một cách tối ưu nhất.*
