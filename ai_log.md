@@ -90,16 +90,16 @@
 **AI Hướng dẫn:**
 1. **Cơ chế:** Crawler chạy background, lưu dữ liệu realtime (append) và checkpoint.
 2. **Dừng (Stop):**
-   - Sử dụng lệnh \Stop-Process -Name 'python' -Force\.
+   - Sử dụng lệnh `Stop-Process -Name 'python' -Force`.
    - Dữ liệu đã lưu an toàn trên đĩa.
 3. **Chạy lại (Resume):**
    - Chạy lại lệnh khởi động crawler.
-   - Hệ thống tự động load \checkpoint_fast.json\, bỏ qua URL cũ, tiếp tục crawl URL mới.
+   - Hệ thống tự động load `checkpoint_fast.json`, bỏ qua URL cũ, tiếp tục crawl URL mới.
 
 **Trạng thái hiện tại:**
 - Crawler đang chạy chế độ **Continuous Loop** (Bền bỉ).
-- Log được ghi ra file \crawler_v2.log\ để monitoring.
-- Dữ liệu đang đổ về \data_member1/masothue_fast.jsonl\.
+- Log được ghi ra file `crawler_v2.log` để monitoring.
+- Dữ liệu đang đổ về `data_member1/masothue_fast.jsonl`.
 
 ---
 
@@ -234,3 +234,25 @@ Triển khai `GodCrawler` với các kỹ thuật Anti-Detection nâng cao nhấ
 
 **Khuyến nghị:** Cần tích hợp logic `Selenium/Undetected-Chromedriver` từ `ultimate_crawler.py` vào các module con nếu muốn crawl hiệu quả cho Member 3, hoặc cập nhật hướng dẫn để sử dụng `ultimate_crawler.py` chung cho cả team.
 
+
+---
+
+## Date: 2026-01-20
+
+### Task 18: Crawl Itviec Reviews (Detailed Address)
+
+**User:** Yêu cầu crawl review từ Itviec.com, bao gồm địa chỉ chi tiết từng công ty.
+
+**AI Action:**
+1. **Phát triển `src/crawler/crawl_itviec.py`:**
+   - Sử dụng `curl_cffi` (impersonate chrome120) để bypass Cloudflare.
+   - Logic: Crawl danh sách công ty -> Lấy Overview URL để extract địa chỉ chi tiết (decode URL-encoded data-location) -> Crawl Review URL.
+   - Giới hạn: ~10 reviews/công ty.
+   - Resume: Tự động bỏ qua các URL đã crawl.
+2. **Thực thi:**
+   - Script chạy background (`nohup`).
+   - Đã xử lý phân trang và rate limit.
+   - **Kết quả:** Thu thập thành công **1511 reviews** chất lượng cao với địa chỉ chi tiết.
+   - File kết quả: `data/reviews_itviec.jsonl`.
+
+**(TASK COMPLETED)**
