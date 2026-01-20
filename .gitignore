@@ -37,3 +37,11 @@ Thumbs.db
 # Checkpoints
 checkpoints/
 *.checkpoint
+
+# Debug and Runtime artifacts
+debug_*.html
+hsctvn_*.html
+crawler_pid.txt
+cookies.json
+user_agent.txt
+*.html
