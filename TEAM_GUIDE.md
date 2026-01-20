@@ -16,24 +16,24 @@
 ## 📋 Hướng dẫn cài đặt (Mỗi thành viên đều làm)
 
 ### 1. Clone repository
-```powershell
+```bash
 git clone https://github.com/SEG301/OverFitting.git
 cd OverFitting
 ```
 
 ### 2. Tạo Virtual Environment
-```powershell
-python -m venv venv
-.\venv\Scripts\Activate.ps1
+```bash
+python3 -m venv venv
+source venv/bin/activate
 ```
 
 ### 3. Cài đặt dependencies
-```powershell
+```bash
 pip install -r requirements.txt
 ```
 
 ### 4. Test cài đặt
-```powershell
+```bash
 python -c "from src.crawler import MasothueCrawler; print('OK')"
 ```
 
@@ -42,7 +42,7 @@ python -c "from src.crawler import MasothueCrawler; print('OK')"
 ## 👤 Member 1: Masothue - Ngành 1-25
 
 ### Chạy crawler
-```powershell
+```bash
 # Chạy full (sẽ mất 1-2 ngày)
 python -m src.crawler.main crawl --source masothue --industries 1-25 --output data_member1
 
@@ -51,7 +51,7 @@ python -m src.crawler.main crawl --source masothue --industries 1-25 --limit 100
 ```
 
 ### Resume nếu bị gián đoạn
-```powershell
+```bash
 python -m src.crawler.main crawl --source masothue --industries 1-25 --output data_member1 --resume
 ```
 
@@ -64,7 +64,7 @@ python -m src.crawler.main crawl --source masothue --industries 1-25 --output da
 ## 👤 Member 2: Masothue - Ngành 26-73
 
 ### Chạy crawler
-```powershell
+```bash
 # Chạy full
 python -m src.crawler.main crawl --source masothue --industries 26-73 --output data_member2
 
@@ -77,12 +77,12 @@ python -m src.crawler.main crawl --source masothue --industries 26-73 --limit 10
 ## 👤 Member 3: Hosocongty + Reviewcongty
 
 ### Chạy crawler
-```powershell
+```bash
 # Chạy Hosocongty
-python -m src.crawler.main crawl --source hosocongty --output data_member3
+python3 -m src.crawler.main crawl --source hosocongty --output data_member3
 
 # Chạy Reviewcongty
-python -m src.crawler.main crawl --source reviewcongty --output data_member3
+python3 -m src.crawler.main crawl --source reviewcongty --output data_member3
 ```
 
 ---
@@ -93,7 +93,7 @@ python -m src.crawler.main crawl --source reviewcongty --output data_member3
 Mỗi người upload folder `data_memberX/` lên Google Drive hoặc copy sang máy leader.
 
 ### 2. Merge tất cả dữ liệu
-```powershell
+```bash
 # Gộp tất cả file JSONL
 python -m src.crawler.main merge \
     --masothue "data_member1/*.jsonl" "data_member2/*.jsonl" \
@@ -103,7 +103,7 @@ python -m src.crawler.main merge \
 ```
 
 ### 3. Loại bỏ trùng lặp
-```powershell
+```bash
 python -m src.crawler.main dedup \
     --input "data/all_companies_merged.jsonl" \
     --output "data/all_companies_final.jsonl" \
@@ -111,7 +111,7 @@ python -m src.crawler.main dedup \
 ```
 
 ### 4. Tạo thống kê
-```powershell
+```bash
 python -m src.crawler.main stats \
     --input "data/all_companies_final.jsonl" \
     --output "docs/data_statistics.md"
@@ -156,12 +156,12 @@ python -m src.crawler.main stats \
 ## 🆘 Troubleshooting
 
 ### Bị block IP
-```powershell
+```bash
 # Giảm concurrent requests
-python -m src.crawler.main crawl --source masothue --concurrent 10
+python3 -m src.crawler.main crawl --source masothue --concurrent 10
 
 # Hoặc tăng rate limit (chậm hơn)
-# Sửa trong code: rate_limit=0.5 (500ms giữa mỗi request)
+python3 -m src.crawler.main crawl --source masothue --delay 2.0
 ```
 
 ### Lỗi RAM không đủ
@@ -171,6 +171,6 @@ python -m src.crawler.main crawl --source masothue --concurrent 10
 ### Resume không hoạt động
 - Kiểm tra file checkpoint có tồn tại không
 - Xóa checkpoint để crawl lại từ đầu:
-```powershell
-del data_memberX\*_checkpoint.json
+```bash
+rm data_memberX/*_checkpoint.json
 ```

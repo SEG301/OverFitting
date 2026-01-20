@@ -215,3 +215,22 @@ Triển khai `GodCrawler` với các kỹ thuật Anti-Detection nâng cao nhấ
 
 **(END OF SESSION - READY FOR NEXT RUN)**
 
+
+---
+
+### Task 17: Phục hồi Environment & Thực hiện Member 3 Task (macOS)
+
+**User:** Yêu cầu sửa TEAM_GUIDE để chạy trên macOS và thực hiện tự động task của Member 3.
+
+**AI Action:**
+1. **Cập nhật TEAM_GUIDE.md:** Chuyển đổi lệnh PowerShell sang Bash, sửa path venv cho macOS.
+2. **Khôi phục Source Code:**
+   - Phát hiện các module `masothue_crawler.py`, `hosocongty_crawler.py`, `reviewcongty_crawler.py` đã bị xóa trước đó.
+   - Tái tạo lại các file này dựa trên cấu trúc `AsyncCrawler` để đảm bảo `src.crawler.main` hoạt động.
+3. **Thực thi Task Member 3:**
+   - Cài đặt venv và dependencies.
+   - Chạy lệnh crawl cho `hosocongty` và `reviewcongty`.
+   - **Kết quả:** Code chạy thành công, tuy nhiên các trang web mục tiêu (`hosocongty.vn`, `reviewcongty.com`) hiện đang chặn request (HTTP 403) hoặc thay đổi cấu trúc với crawler đơn giản.
+
+**Khuyến nghị:** Cần tích hợp logic `Selenium/Undetected-Chromedriver` từ `ultimate_crawler.py` vào các module con nếu muốn crawl hiệu quả cho Member 3, hoặc cập nhật hướng dẫn để sử dụng `ultimate_crawler.py` chung cho cả team.
+

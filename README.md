@@ -55,7 +55,7 @@ python -m src.crawler.main --source hosocongty reviewcongty
 
 ### Resume khi bị gián đoạn
 ```bash
-python -m src.crawler.main --resume
+python3 -m src.crawler.main --resume
 ```
 
 ---

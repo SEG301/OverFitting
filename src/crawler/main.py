@@ -45,13 +45,15 @@ def cli():
 @click.option('--industries', type=str, default=None, 
               help='Industry range for masothue (e.g., "1-25")')
 @click.option('--concurrent', '-c', type=int, default=30, help='Max concurrent requests')
-def crawl(source, limit, output, resume, industries, concurrent):
+@click.option('--delay', '-d', type=float, default=0.1, help='Delay between requests in seconds')
+def crawl(source, limit, output, resume, industries, concurrent, delay):
     """Run the crawler for specified sources"""
     
     console.print(f"[bold green]🚀 Starting crawler...[/bold green]")
     console.print(f"Sources: {source}")
     console.print(f"Output: {output}")
     console.print(f"Resume: {resume}")
+    console.print(f"Delay: {delay}s")
     
     if 'all' in source:
         source = ['masothue', 'hosocongty', 'reviewcongty']
@@ -77,17 +79,20 @@ def crawl(source, limit, output, resume, industries, concurrent):
                 crawler = MasothueCrawler(
                     output_dir=output,
                     industry_range=industry_range,
-                    max_concurrent=concurrent
+                    max_concurrent=concurrent,
+                    rate_limit=delay
                 )
             elif src == 'hosocongty':
                 crawler = HosocongyCrawler(
                     output_dir=output,
-                    max_concurrent=concurrent
+                    max_concurrent=concurrent,
+                    rate_limit=delay
                 )
             elif src == 'reviewcongty':
                 crawler = ReviewcongtyCrawler(
                     output_dir=output,
-                    max_concurrent=concurrent
+                    max_concurrent=concurrent,
+                    rate_limit=delay
                 )
             else:
                 continue
