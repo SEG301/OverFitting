@@ -5,13 +5,12 @@ __pycache__/
 venv/
 .env
 
-# Data
+# Data & Logs
 data/
 data_member1/
 data_browsers/
-*.jsonl
-*.json
 *.log
+!data_sample/sample.jsonl
 
 # Artifacts
 .DS_Store

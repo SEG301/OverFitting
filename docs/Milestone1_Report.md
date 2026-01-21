@@ -3,35 +3,75 @@
 ## 1. Thông tin chung
 - **Chủ đề**: Thông tin Doanh nghiệp (Topic 3).
 - **Mục tiêu**: Thu thập tối thiểu 1.000.000 documents sạch, đã được tách từ tiếng Việt.
-- **Kết quả thực tế**: Đã thu thu thập được **1.848.043** documents (Vượt 84% so với chỉ tiêu).
-- **Dung lượng file**: ~1.02 GB (.jsonl).
+- **Kết quả thực tế**: Đã thu thu thập được **1.848.043** documents (Vượt 84% so với chỉ tiêu đề ra).
+- **Dung lượng file**: ~6.1 GB (File đã qua xử lý tách từ toàn bộ).
+- **Định dạng**: JSON Lines (.jsonl).
+
+---
 
 ## 2. Nguồn dữ liệu
-- **infodoanhnghiep.com**: Nguồn dữ liệu chính cho thông tin doanh nghiệp.
-- **Dữ liệu thu thập được bao gồm**:
-    - Thông tin bề nổi: Tên công ty, Mã số thuế, Địa chỉ đăng ký.
-    - **Thông tin chuyên sâu (Deep Data)**: Người đại diện pháp luật, Tình trạng hoạt động, Số điện thoại (nếu có), Ngày cấp GCN và Danh sách đầy đủ các ngành nghề kinh doanh.
+Để đảm bảo tính đa dạng và chất lượng thông tin, nhóm đã khai thác 3 nguồn dữ liệu chính:
+1. **infodoanhnghiep.com**: Nguồn dữ liệu gốc về pháp nhân doanh nghiệp, mã số thuế và ngành nghề kinh doanh.
+2. **itviec.com**: Nguồn đánh giá (reviews) chất lượng cao từ nhân viên và ứng viên.
+3. **1900.com.vn**: Nguồn đánh giá bổ sung về trải nghiệm làm việc và môi trường doanh nghiệp.
 
-## 3. Quy trình kỹ thuật
-### 3.1. Crawling ( spider.py )
-- **Kỹ thuật**: `requests` + `BeautifulSoup4`.
-- **Đa luồng**: Triển khai `ThreadPoolExecutor` với **50 workers**.
-- **Cơ chế Resume**: Kiểm tra dữ liệu đã có trong file JSONL để nạp vào bộ nhớ trước khi cào, giúp tránh trùng lặp khi khởi động lại.
-- **Xử lý Pagination**: Phát hiện cơ chế redirect của server khi hết trang (Soft Redirect) để dừng crawler đúng lúc, tránh vòng lặp vô tận.
+Dữ liệu thu thập bao gồm:
+- **Thông tin cơ bản**: Tên công ty, Mã số thuế, Địa chỉ, Người đại diện.
+- **Dữ liệu chuyên sâu**: Tình trạng hoạt động, Ngành nghề kinh doanh đầy đủ (Mã ngành + Tên ngành).
+- **Trải nghiệm người dùng**: Danh sách các reviews kèm tiêu đề, nội dung và đánh giá sao.
 
-### 3.2. Cleaning & Word Segmentation ( parser.py )
-- **Deduplication**: Lọc trùng dựa trên bộ khóa `(tax_code, company_name)`.
-- **Word Segmentation (Tách từ)**: Sử dụng thư viện `PyVi` để thực hiện tách từ tiếng Việt.
+---
 
-## 4. Tại sao cần Word Segmentation (Tách từ)?
-Trong tiếng Việt, khoảng trắng không phải lúc nào cũng ngăn cách các từ đơn lẻ (ví dụ: "Sách giáo khoa" là 1 từ ghép nhưng có 2 khoảng trắng).
+## 3. Quy trình kỹ thuật (Pipeline)
+Hệ thống được thiết kế theo dạng module hóa, chia thành các công đoạn độc lập:
+
+### 3.1. Crawling (Thu thập)
+- **Công cụ**: `requests` + `BeautifulSoup4` + `curl_cffi`.
+- **Hiệu năng**: Triển khai **100 luồng (workers)** song song, đạt tốc độ ~1.200 - 1.500 requests/phút.
+- **Scripts**: 
+    - `crawl_enterprise.py`: Cào dữ liệu doanh nghiệp.
+    - `crawl_reviews_itviec.py`: Cào reviews từ ITviec.
+    - `crawl_reviews_1900.py`: Cào reviews từ 1900.com.vn.
+
+### 3.2. Processing (Xử lý & Gộp)
+- **Gộp dữ liệu (`process_merge.py`)**: Kết hợp các file JSONL từ nhiều nguồn, loại bỏ trùng lặp dựa trên khóa định danh `(tax_code, company_name, address)`.
+- **Mapping Review (`process_map_*.py`)**: Sử dụng thuật toán so khớp tên lõi (Core-name matching) và lọc theo địa lý (Province matching) để gắn chính xác review vào từng doanh nghiệp.
+
+### 3.3. Enrichment & Tokenization (`process_segment.py`)
+- **Tách từ tiếng Việt**: Sử dụng thư viện `PyVi` (ViTokenizer) để xử lý toàn bộ dữ liệu.
+- **Đối tượng xử lý**: Tách từ cho Tên công ty, Địa chỉ, Người đại diện, Ngành nghề và Nội dung review.
+
+---
+
+## 4. Insight & Thống kê dữ liệu (Data Statistics)
+Dựa trên việc phân tích mẫu 50.000 bản ghi từ bộ dữ liệu cuối cùng, nhóm trích xuất được các chỉ số quan trọng sau:
+
+| Chỉ số thống kê | Giá trị |
+| :--- | :--- |
+| **Tổng số lượng bản ghi (Unique)** | 1.848.043 |
+| **Kích thước từ vựng (Vocabulary Size)** | ~57.589 từ |
+| **Độ dài trung bình mỗi tài liệu** | ~275.24 tokens |
+| **Số lượng reviews đã khớp nối** | >10.000 reviews |
+
+**Nhận xét**: 
+- Độ dài trung bình tài liệu khá lớn (~275 tokens) cho thấy dữ liệu có độ sâu thông tin rất tốt (bao gồm nhiều ngành nghề và đánh giá chi tiết).
+- Kích thước từ vựng (~57k từ) phản ánh sự phong phú của thuật ngữ chuyên ngành kinh tế và từ ngữ tự nhiên trong reviews.
+
+---
+
+## 5. Tại sao cần Word Segmentation (Tách từ)?
+Trong tiếng Việt, khoảng trắng không phải lúc nào cũng ngăn cách các từ đơn lẻ.
 - **Tăng độ chính xác (Precision)**: Giúp máy tìm kiếm hiểu "Công ty" là một thực thể chứ không phải hai từ "Công" và "ty" riêng lẻ.
-- **Tối ưu hóa Index**: Khi thực hiện Milestone 2 (Indexing), việc lưu trữ các từ đã tách (`cong_ty`, `tnhh`) giúp thuật toán tìm kiếm (BM25) hoạt động hiệu quả hơn, trả về kết quả sát với ngữ nghĩa của người dùng nhất.
-- **Yêu cầu đồ án**: Đây là tiêu chí bắt buộc để đánh giá chất lượng xử lý dữ liệu của Milestone 1.
+- **Tối ưu hóa Index**: Khi thực hiện Milestone 2 (Indexing), việc lưu trữ các từ đã tách (`cong_ty`, `tnhh`) giúp thuật toán tìm kiếm (BM25) hoạt động hiệu quả hơn.
 
-## 5. Cấu trúc thư mục Github
-Dự án được tổ chức module hóa theo yêu cầu:
-- `src/crawler/spider.py`: Quản lý luồng và điều hướng.
-- `src/crawler/parser.py`: Trích xuất dữ liệu và tách từ.
-- `src/crawler/utils.py`: Các hàm tiện ích chuẩn hóa văn bản.
-- `data_sample/sample.jsonl`: Chứa 100 bản ghi mẫu.
+---
+
+## 6. Cấu trúc thư mục mã nguồn
+Dự án tuân thủ nghiêm ngặt quy định tổ chức của môn học:
+- `src/crawler/`: Chứa tất cả script thu thập và tiền xử lý.
+- `docs/`: Chứa báo cáo Milestone.
+- `data_sample/`: Chứa file mẫu `sample.jsonl` (đã tách từ).
+- `ai_log.md`: Nhật ký tương tác AI (Tuân thủ Zero Tolerance Policy).
+
+---
+**Nhóm OverFitting - 1/2026**

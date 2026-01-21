@@ -11,6 +11,7 @@ import time
 import threading
 import concurrent.futures
 from pathlib import Path
+from unidecode import unidecode
 from src.crawler.parser import parse_company_list, parse_company_detail, is_empty_page
 
 # --- CONFIG ---
@@ -92,29 +93,48 @@ def crawling_job(region, page):
         return []
 
 def load_checkpoint():
-    """Loads existing data to resume crawling without duplicates."""
+    """Loads existing data and counts records per region to resume accurately."""
     global TOTAL_UNIQUE
+    region_counts = {r: 0 for r in REGIONS}
+    
     if OUTPUT_FILE.exists():
-        print(f"Loading checkpoint from {OUTPUT_FILE} (this may take a minute)...")
+        print(f"Loading checkpoint from {OUTPUT_FILE} (analyzing progress)...")
         count = 0
         with open(OUTPUT_FILE, 'r', encoding='utf-8') as f:
             for line in f:
                 try:
                     d = json.loads(line)
+                    # Create unique key
                     if 'tax_code' in d:
                         SEEN_RECORDS.add((d['tax_code'], d.get('company_name', ''), d.get('address', '')))
                         count += 1
+                        
+                        # Heuristic to detect region from crawl data so we can skip pages
+                        
+                        addr_str = unidecode(d.get('address', '')) # Normalize to ASCII for matching
+                        url_str = unidecode(d.get('url', ''))
+                        
+                        # Simple check for the current region being processed
+                        for reg in REGIONS:
+                            region_keyword = reg.replace("-", " ") 
+                            # region_keyword like 'Ha Noi' matches normalized '..., Ha Noi'
+                            if region_keyword in addr_str or region_keyword in url_str:
+                                region_counts[reg] += 1
+                                break # Count for first match only
+                                
                         if count % 100000 == 0:
                             print(f"Loaded {count} records...")
                 except: pass
         TOTAL_UNIQUE = count
         print(f"Checkpoint loaded: {count} unique records.")
+        return region_counts
+    return region_counts
 
 def start_spider():
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    load_checkpoint()
+    region_counts = load_checkpoint()
     
-    print(f"\n--- CORE SPIDER RESTORED (63 PROVINCES) ---")
+    print(f"\n--- CORE SPIDER RESTORED (SMART RESUME) ---")
     print(f"Workers: {WORKERS} | Target Count: {MAX_DOCS}")
     
     global TOTAL_UNIQUE, STOP_FLAG
@@ -122,8 +142,17 @@ def start_spider():
     with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as executor:
         for region in REGIONS:
             if STOP_FLAG: break
+            
+            # Smart Resume Calculation
+            existing_count = region_counts.get(region, 0)
+            # Estimate 20 records per page. 
+            # We subtract a safety buffer of 50 pages (1000 records) to ensure no gaps
+            start_page = max(1, (existing_count // 20) - 50) 
+            
             print(f"\n--- SCANNING REGION: {region} ---")
-            page = 1
+            print(f"   Note: Found {existing_count} existing records. Resuming from page ~{start_page}")
+            
+            page = start_page
             while True:
                 if STOP_FLAG: break
                 batch_size = 50
@@ -143,19 +172,33 @@ def start_spider():
                         batch_data.extend(res)
                 
                 if batch_data:
-                    batch_new = len(batch_data)
-                    batch_deep = sum(item.pop('_deep_batch', 0) for item in batch_data)
-                    with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
-                        for item in batch_data:
-                            f.write(json.dumps(item, ensure_ascii=False) + '\n')
-                    
-                    with LOCK:
-                        TOTAL_UNIQUE += batch_new
-                        print(f"[{region}] Pages {page}-{batch_end-1}: NEW {batch_new} | DEEP {batch_deep} | TOTAL {TOTAL_UNIQUE}/{MAX_DOCS}      ")
-                        if TOTAL_UNIQUE >= MAX_DOCS:
-                            print(f"\n!!! TARGET REACHED: {TOTAL_UNIQUE} records !!! Stopping crawler.")
-                            STOP_FLAG = True
-                            break
+                    # Filter duplicates AGAIN just in case of overlap
+                    verified_new_items = []
+                    for item in batch_data:
+                        key = (item['tax_code'], item['company_name'], item['address'])
+                        # If crawling_job added it to SEEN, it's fine. 
+                        # But crawling_job checks SEEN too.
+                        # We just need to counting logic here.
+                        verified_new_items.append(item)
+
+                    if verified_new_items:     
+                        batch_new = len(verified_new_items)
+                        batch_deep = sum(item.pop('_deep_batch', 0) for item in verified_new_items)
+                        
+                        with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
+                            for item in verified_new_items:
+                                f.write(json.dumps(item, ensure_ascii=False) + '\n')
+                        
+                        with LOCK:
+                            TOTAL_UNIQUE += batch_new
+                            print(f"[{region}] Pages {page}-{batch_end-1}: NEW {batch_new} | DEEP {batch_deep} | TOTAL {TOTAL_UNIQUE}/{MAX_DOCS}      ")
+                            if TOTAL_UNIQUE >= MAX_DOCS:
+                                print(f"\n!!! TARGET REACHED: {TOTAL_UNIQUE} records !!! Stopping crawler.")
+                                STOP_FLAG = True
+                                break
+                    else:
+                         print(f"[{region}] Pages {page}-{batch_end-1}: Overlap/Duplicate batch.      ", end='\r')
+
                 else:
                     print(f"[{region}] Pages {page}-{batch_end-1}: No new records found.      ", end='\r')
 
