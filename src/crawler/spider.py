@@ -15,21 +15,20 @@ from src.crawler.parser import parse_company_list, parse_company_detail, is_empt
 
 # --- CONFIG ---
 BASE_URL = "https://infodoanhnghiep.com"
+# Cào 9 tỉnh miền Tây (ĐBSCL Part 2)
 REGIONS = [
-    "Ha-Noi", "TP-Ho-Chi-Minh", "Da-Nang", "Hai-Phong", "Can-Tho",
-    "Bac-Ninh", "Hai-Duong", "Hung-Yen", "Vinh-Phuc", "Quang-Ninh", "Thai-Binh", "Nam-Dinh", "Ninh-Binh", "Ha-Nam", "Phu-Tho", "Bac-Giang", "Thai-Nguyen", "Lang-Son", "Tuyen-Quang", "Yen-Bai", "Lao-Cai", "Ha-Giang", "Cao-Bang", "Bac-Kan", "Dien-Bien", "Lai-Chau", "Son-La", "Hoa-Binh",
-    "Thanh-Hoa", "Nghe-An", "Ha-Tinh", "Quang-Binh", "Quang-Tri", "Thua-Thien-Hue", "Quang-Nam", "Quang-Ngai", "Binh-Dinh", "Phu-Yen", "Khanh-Hoa", "Ninh-Thuan", "Binh-Thuan", "Kon-Tum", "Gia-Lai", "Dak-Lak", "Dak-Nong", "Lam-Dong",
-    "Binh-Phuoc", "Tay-Ninh", "Binh-Duong", "Dong-Nai", "Ba-Ria-Vung-Tau", "Long-An", "Tien-Giang", "Ben-Tre", "Tra-Vinh", "Vinh-Long", "Dong-Thap", "An-Giang", "Kien-Giang", "Hau-Giang", "Soc-Trang", "Bac-Lieu", "Ca-Mau"
+    "Tra-Vinh", "Vinh-Long", "Dong-Thap", "An-Giang", "Kien-Giang", 
+    "Hau-Giang", "Soc-Trang", "Bac-Lieu", "Ca-Mau"
 ]
-WORKERS = 100 # Increased for ultimate speed
+WORKERS = 80  # OPTIMAL
 DEEP_CRAWL = True 
-MAX_DOCS = 1000000
-OUTPUT_FILE = Path("data/milestone1_final_deep_1m.jsonl")
+MAX_DOCS = 10000000  # Cào hết không giới hạn
+OUTPUT_FILE = Path("data/south_part2_data.jsonl")  # File mới cho 9 tỉnh miền Tây
 
 # --- GLOBAL SESSION & POOLS ---
 SESSION = requests.Session()
 # Maximize connection pool to 1000
-adapter = HTTPAdapter(pool_connections=200, pool_maxsize=1000, max_retries=Retry(total=3, backoff_factor=0.5))
+adapter = HTTPAdapter(pool_connections=500, pool_maxsize=1500, max_retries=Retry(total=3, backoff_factor=0.5))
 SESSION.mount("https://", adapter)
 SESSION.headers.update({
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -114,8 +113,12 @@ def start_spider():
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     load_checkpoint()
     
-    print(f"\n--- CORE SPIDER RESTORED (63 PROVINCES) ---")
-    print(f"Workers: {WORKERS} | Target Count: {MAX_DOCS}")
+    print(f"\n--- CRAWLER: 9 MEKONG DELTA PROVINCES (South Part 2) ---")
+    print(f"Regions: {', '.join(REGIONS)}")
+    print(f"Workers: {WORKERS} | Target: {MAX_DOCS:,} | Deep Crawl: {DEEP_CRAWL}")
+    print(f"Output: {OUTPUT_FILE}")
+    
+    
     
     global TOTAL_UNIQUE, STOP_FLAG
     

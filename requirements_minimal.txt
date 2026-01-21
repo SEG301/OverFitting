@@ -1,0 +1,16 @@
+# Core Web Scraping
+requests==2.31.0
+beautifulsoup4==4.12.3
+lxml==5.3.0
+
+# HTTP Connection Pooling
+urllib3==2.6.3
+
+# Vietnamese Word Segmentation
+pyvi==0.1.1
+
+# Testing (Optional)
+pytest==8.3.4
+
+# Data Processing
+python-dateutil==2.9.0.post0
