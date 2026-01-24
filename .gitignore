@@ -9,7 +9,7 @@ venv/
 data/
 data_member1/
 data_browsers/
-# support/ (Removed from ignore to include stats scripts)
+support/
 *.log
 !data_sample/sample.jsonl
 
