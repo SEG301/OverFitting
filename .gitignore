@@ -9,6 +9,7 @@ venv/
 data/
 data_member1/
 data_browsers/
+# support/ (Removed from ignore to include stats scripts)
 *.log
 !data_sample/sample.jsonl
 
@@ -19,3 +20,6 @@ data_browsers/
 # Keep ai_log.md if you want to track history on git, but usually logs are ignored.
 # BUT USER ASKED TO UPLOAD LOG. So I will comment it out.
 # ai_log.md
+# Backup/Old Code
+code2/
+code3/

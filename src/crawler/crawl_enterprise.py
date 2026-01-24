@@ -25,7 +25,7 @@ REGIONS = [
 WORKERS = 100 # Increased for ultimate speed
 DEEP_CRAWL = True 
 MAX_DOCS = 1000000
-OUTPUT_FILE = Path("data/milestone1_final_deep_1m.jsonl")
+OUTPUT_FILE = Path("data/enterprise_data.jsonl")
 
 # --- GLOBAL SESSION & POOLS ---
 SESSION = requests.Session()

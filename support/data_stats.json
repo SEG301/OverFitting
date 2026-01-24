@@ -1,0 +1,18 @@
+{
+    "total_documents": 1842525,
+    "has_tax_code": 1842525,
+    "has_address": 1842525,
+    "has_reviews": 10223,
+    "avg_doc_length": 143.3932500237446,
+    "vocabulary_size": 18087,
+    "provinces": {
+        "Hà Nội": 339176,
+        "Hồ Chí Minh": 550595,
+        "Đà Nẵng": 52938,
+        "Hải Phòng": 50990,
+        "Cần Thơ": 22900,
+        "Đồng Nai": 50791,
+        "Bình Dương": 64828,
+        "Bắc Ninh": 25012
+    }
+}
