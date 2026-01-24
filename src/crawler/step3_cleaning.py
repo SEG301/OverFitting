@@ -2,6 +2,12 @@ import json
 import re
 import sys
 import os
+from pathlib import Path
+
+# Add project root to sys.path
+root = str(Path(__file__).resolve().parent.parent.parent)
+if root not in sys.path:
+    sys.path.append(root)
 
 # PATHS
 INPUT_FILE = "data/01_deduplicated.jsonl"

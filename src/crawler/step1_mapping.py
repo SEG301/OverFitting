@@ -1,4 +1,13 @@
 import json
+import sys
+import os
+from pathlib import Path
+
+# Add project root to sys.path
+root = str(Path(__file__).resolve().parent.parent.parent)
+if root not in sys.path:
+    sys.path.append(root)
+
 from pathlib import Path
 import re
 import unicodedata

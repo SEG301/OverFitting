@@ -1,5 +1,11 @@
 import sys
 import os
+from pathlib import Path
+
+# Add project root to sys.path
+root = str(Path(__file__).resolve().parent.parent.parent)
+if root not in sys.path:
+    sys.path.append(root)
 
 # Ensure the script can find its stages
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

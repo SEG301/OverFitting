@@ -1,9 +1,17 @@
+import sys
+import os
+from pathlib import Path
+
+# Add project root to sys.path
+root = str(Path(__file__).resolve().parent.parent.parent)
+if root not in sys.path:
+    sys.path.append(root)
+
 import requests
 import concurrent.futures
 import json
 import time
 import threading
-import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import json

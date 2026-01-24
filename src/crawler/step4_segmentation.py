@@ -1,6 +1,14 @@
 import json
 import re
 import os
+import sys
+from pathlib import Path
+
+# Add project root to sys.path
+root = str(Path(__file__).resolve().parent.parent.parent)
+if root not in sys.path:
+    sys.path.append(root)
+
 from pyvi import ViTokenizer
 
 # PATHS

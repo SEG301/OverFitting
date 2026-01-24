@@ -1,5 +1,13 @@
 import json
 import os
+import sys
+from pathlib import Path
+
+# Add project root to sys.path
+root = str(Path(__file__).resolve().parent.parent.parent)
+if root not in sys.path:
+    sys.path.append(root)
+
 import time
 import random
 from bs4 import BeautifulSoup
@@ -29,7 +37,7 @@ class ITviecCrawler:
     def crawl(self):
         print("Starting ITviec Crawl...")
         page = 1
-        while page <= 10: # Limit pages for demo/sample
+        while page <= 1: # Limit to 1 page for demo
             url = f"{self.base_url}/companies?page={page}"
             html = self.fetch(url)
             if not html: break
@@ -83,13 +91,12 @@ def crawl_1900():
     pass
 
 def run():
-    # ITviec
-    # it = ITviecCrawler()
-    # it.crawl()
+    print("=== STARTING SAMPLE REVIEW CRAWL ===")
+    # ITviec (Cào mẫu 1 trang để giảng viên thấy code chạy được)
+    it = ITviecCrawler()
+    it.crawl()
     
-    # 1900
-    # crawl_1900()
-    print("Crawlers are ready. Run specific crawl scripts if data is missing.")
+    print("\nSAMPLE CRAWL COMPLETED!")
 
 if __name__ == "__main__":
     run()
