@@ -1,7 +1,7 @@
 from .base_crawler import AsyncCrawler
 from .masothue_crawler import MasothueCrawler
 from .hosocongty_crawler import HosocongyCrawler
-from .reviewcongty_crawler import ReviewcongtyCrawler
+from .reviews.reviewcongty_crawler import ReviewcongtyCrawler
 from .file_crawler import FileCrawler
 from .parser import DataParser
 from .utils import deduplicate, save_jsonl, load_checkpoint, save_checkpoint

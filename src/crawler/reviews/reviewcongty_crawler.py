@@ -3,7 +3,7 @@ from typing import List, Dict, Any, Optional
 from bs4 import BeautifulSoup
 from bs4 import BeautifulSoup
 from curl_cffi.requests import AsyncSession
-from .base_crawler import AsyncCrawler
+from ..base_crawler import AsyncCrawler
 
 class ReviewcongtyCrawler(AsyncCrawler):
     def __init__(self, output_dir: str, max_concurrent: int = 20, rate_limit: float = 0.1):

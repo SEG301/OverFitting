@@ -20,7 +20,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from .masothue_crawler import MasothueCrawler
 from .hosocongty_crawler import HosocongyCrawler
-from .reviewcongty_crawler import ReviewcongtyCrawler
+from .reviews.reviewcongty_crawler import ReviewcongtyCrawler
 from .utils import (
     load_jsonl_sync, deduplicate_file, merge_company_data,
     compute_statistics, generate_report
