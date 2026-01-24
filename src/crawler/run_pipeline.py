@@ -1,6 +1,9 @@
 import sys
 import os
 
+# Ensure the script can find its stages
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 # Import stages
 import step1_mapping as stage1
 import step2_deduplicate as stage2

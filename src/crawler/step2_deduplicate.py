@@ -1,4 +1,5 @@
 import json
+import os
 
 # PATHS
 INPUT_FILE = "data/00_mapped_data.jsonl"
@@ -13,7 +14,7 @@ def run():
     count_in = 0
     count_out = 0
     
-    if not json.os.path.exists(INPUT_FILE):
+    if not os.path.exists(INPUT_FILE):
         print(f"Error: {INPUT_FILE} not found.")
         return
 
@@ -38,6 +39,4 @@ def run():
     print(f"DONE Step 4. Input: {count_in} | Output: {count_out}")
 
 if __name__ == "__main__":
-    import os
-    json.os = os # Patch for script
     run()

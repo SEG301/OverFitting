@@ -1,6 +1,7 @@
 import json
 import re
 import sys
+import os
 
 # PATHS
 INPUT_FILE = "data/01_deduplicated.jsonl"
@@ -41,5 +42,4 @@ def run():
     print(f"DONE Step 5. Cleaned {count} records.")
 
 if __name__ == "__main__":
-    import os
     run()

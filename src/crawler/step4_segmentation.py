@@ -1,5 +1,6 @@
 import json
 import re
+import os
 from pyvi import ViTokenizer
 
 # PATHS
@@ -35,5 +36,4 @@ def run():
     print(f"DONE Step 6. Final file: {OUTPUT_FILE}")
 
 if __name__ == "__main__":
-    import os
     run()
