@@ -42,9 +42,6 @@ SEG301-OverFitting/
 │       └── utils.py                 # Hàm tiện ích chuẩn hóa
 ├── docs/                    # Thư mục báo cáo & tài liệu
 │   └── Milestone1_Report.md # Báo cáo chi tiết Milestone 1
-├── support/                 # Mã nguồn hỗ trợ tính toán thống kê & Tool phụ
-│   ├── calculate_stats.py   # Script tính toán số liệu chính xác cho báo cáo
-│   └── filter_reviews.py    # Tool lọc mẫu dữ liệu có review
 ├── data_sample/             # Dữ liệu mẫu (100 docs)
 │   └── sample.jsonl
 ├── requirements.txt         # Các thư viện cần thiết (pip install -r ...)
