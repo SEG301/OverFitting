@@ -39,8 +39,9 @@ OUTPUT_FILE = Path("data/enterprise_data.jsonl")
 
 # --- GLOBAL SESSION & POOLS ---
 SESSION = requests.Session()
-# Maximize connection pool to 1000
-adapter = HTTPAdapter(pool_connections=200, pool_maxsize=1000, max_retries=Retry(total=3, backoff_factor=0.5))
+# pool_connections: number of hosts to cache (we only crawl 1-2 domains)
+# pool_maxsize: number of concurrent connections per host (must be >= total workers)
+adapter = HTTPAdapter(pool_connections=20, pool_maxsize=1000, max_retries=Retry(total=3, backoff_factor=0.5))
 SESSION.mount("https://", adapter)
 SESSION.headers.update({
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
