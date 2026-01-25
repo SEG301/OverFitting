@@ -12,6 +12,7 @@ import concurrent.futures
 import json
 import time
 import threading
+import signal
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import json
@@ -53,6 +54,13 @@ SEEN_RECORDS = set()
 LOCK = threading.Lock()
 TOTAL_UNIQUE = 0
 STOP_FLAG = False
+
+def signal_handler(sig, frame):
+    print("\n\n[!] ATOMIC STOP (Ctrl+C). Exiting process immediately...")
+    import os
+    os._exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 def fetch_single_detail(item):
     """Small worker for parallel detail fetching."""
@@ -138,19 +146,19 @@ def load_checkpoint():
         print(f"Checkpoint loaded: {count} unique records.")
         return region_counts
     return region_counts
-
 def start_spider():
+    global TOTAL_UNIQUE, STOP_FLAG
+
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     region_counts = load_checkpoint()
     
     print(f"\n--- CORE SPIDER RESTORED (SMART RESUME) ---")
     print(f"Workers: {WORKERS} | Target Count: Unlimited")
-
-    
-    global TOTAL_UNIQUE, STOP_FLAG
     
     try:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as executor:
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS)
+    
+        try:
             for region in REGIONS:
                 if STOP_FLAG: break
                 
@@ -176,51 +184,56 @@ def start_spider():
                     stop_region = False
                     
                     try:
-                        for future in concurrent.futures.as_completed(futures, timeout=30):
-                            res = future.result()
-                            if res == "END_OF_PAGE":
-                                stop_region = True
-                            elif isinstance(res, list):
-                                batch_data.extend(res)
-                    except concurrent.futures.TimeoutError:
-                        print(f"\n[{region}] Batch timed out, moving on...")
+                        # Polling loop: check for results with short timeout to keep main thread responsive
+                        pending = set(futures)
+                        while pending:
+                            done, pending = concurrent.futures.wait(
+                                pending, 
+                                timeout=0.5, 
+                                return_when=concurrent.futures.FIRST_COMPLETED
+                            )
+                            for future in done:
+                                res = future.result()
+                                if res == "END_OF_PAGE":
+                                    stop_region = True
+                                elif isinstance(res, list):
+                                    batch_data.extend(res)
+                            
+                            if STOP_FLAG: break
                     except Exception as e:
-                        if not STOP_FLAG: print(f"\nError in batch: {e}")
+                        if not STOP_FLAG: print(f"\nError: {e}")
 
                     if STOP_FLAG: break
 
                     if batch_data:
-                        verified_new_items = batch_data 
-
-                        if verified_new_items:     
-                            batch_new = len(verified_new_items)
-                            batch_deep = sum(item.pop('_deep_batch', 0) for item in verified_new_items)
-                            
-                            with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
-                                for item in verified_new_items:
-                                    f.write(json.dumps(item, ensure_ascii=False) + '\n')
-                            
-                            with LOCK:
-                                TOTAL_UNIQUE += batch_new
-                                print(f"[{region}] Pages {page}-{batch_end-1}: NEW {batch_new} | DEEP {batch_deep} | TOTAL {TOTAL_UNIQUE}      ")
-                        else:
-                             print(f"[{region}] Pages {page}-{batch_end-1}: Overlap/Duplicate batch.      ", end='\r')
-
-                    else:
-                        print(f"[{region}] Pages {page}-{batch_end-1}: No new records found.      ", end='\r')
+                        with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
+                            for item in batch_data:
+                                f.write(json.dumps(item, ensure_ascii=False) + '\n')
+                        
+                        with LOCK:
+                            TOTAL_UNIQUE += len(batch_data)
+                            print(f"[{region}] Pages {page}-{batch_end-1}: NEW {len(batch_data)} | TOTAL {TOTAL_UNIQUE}      ")
 
                     if stop_region:
-                        print(f"\nFinished Region: {region} (Reached last page)")
+                        print(f"\nFinished Region: {region}")
                         break
                         
                     page += batch_size
                     # page limit removed to crawl until END_OF_PAGE
 
-    except KeyboardInterrupt:
-        print("\n\n[!] STOP signal received (Ctrl+C). Saving progress and exiting safely...")
-        STOP_FLAG = True
-        # Detail executor also needs to stop
-        DETAIL_EXECUTOR.shutdown(wait=False, cancel_futures=True)
+        except KeyboardInterrupt:
+            print("\n\n[!] EMERGENCY STOP (Ctrl+C). Exiting immediately...")
+            STOP_FLAG = True
+            executor.shutdown(wait=False, cancel_futures=True)
+            DETAIL_EXECUTOR.shutdown(wait=False, cancel_futures=True)
+            import os
+            os._exit(0) # Force kill process to avoid hanging on slow network threads
+        finally:
+            executor.shutdown(wait=False)
+
+    except KeyboardInterrupt: # This outer catch is for if the executor instantiation itself is interrupted
+        print("\n\n[!] EMERGENCY STOP (Ctrl+C) during setup. Exiting immediately...")
+        os._exit(0)
 
 
     print(f"\nCrawler finished. Final count: {TOTAL_UNIQUE} records saved in {OUTPUT_FILE}")
