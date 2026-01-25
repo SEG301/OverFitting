@@ -18,7 +18,7 @@ Dự án tập trung xây dựng một **Vertical Search Engine** (Máy tìm ki�
 
 - **Mục tiêu chính**: Xây dựng bộ dữ liệu sạch tối thiểu **1.000.000 documents**.
 - **Nguồn dữ liệu**: infodoanhnghiep.com, itviec.com, 1900.com.vn.
-- **Công nghệ**: Python, Multi-threading, Async, NLP (Word Segmentation).
+- **Công nghệ**: Python, High-performance Multi-threading, NLP (Word Segmentation).
 
 ---
 
