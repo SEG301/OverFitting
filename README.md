@@ -119,7 +119,6 @@ Chúng tôi tuân thủ tuyệt đối quy định của môn học:
 
 - **GitHub**: Lịch sử commit đều đặn, rõ ràng từng tính năng.
 - **AI Log**: Toàn bộ quá trình trao đổi với AI được ghi lại trung thực tại `ai_log.md`.
-- **Author Verification**: Sẵn sàng giải thích mọi dòng code cho giảng viên khi vấn đáp.
 
 ---
 Nhóm OverFitting - 2026
