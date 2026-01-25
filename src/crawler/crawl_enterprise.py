@@ -32,7 +32,8 @@ REGIONS = [
 ]
 WORKERS = 100 # Increased for ultimate speed
 DEEP_CRAWL = True 
-MAX_DOCS = 1000000
+# MAX_DOCS = 1000000 # Removed limit as per request
+
 OUTPUT_FILE = Path("data/enterprise_data.jsonl")
 
 # --- GLOBAL SESSION & POOLS ---
@@ -143,7 +144,8 @@ def start_spider():
     region_counts = load_checkpoint()
     
     print(f"\n--- CORE SPIDER RESTORED (SMART RESUME) ---")
-    print(f"Workers: {WORKERS} | Target Count: {MAX_DOCS}")
+    print(f"Workers: {WORKERS} | Target Count: Unlimited")
+
     
     global TOTAL_UNIQUE, STOP_FLAG
     
@@ -199,11 +201,8 @@ def start_spider():
                         
                         with LOCK:
                             TOTAL_UNIQUE += batch_new
-                            print(f"[{region}] Pages {page}-{batch_end-1}: NEW {batch_new} | DEEP {batch_deep} | TOTAL {TOTAL_UNIQUE}/{MAX_DOCS}      ")
-                            if TOTAL_UNIQUE >= MAX_DOCS:
-                                print(f"\n!!! TARGET REACHED: {TOTAL_UNIQUE} records !!! Stopping crawler.")
-                                STOP_FLAG = True
-                                break
+                            print(f"[{region}] Pages {page}-{batch_end-1}: NEW {batch_new} | DEEP {batch_deep} | TOTAL {TOTAL_UNIQUE}      ")
+
                     else:
                          print(f"[{region}] Pages {page}-{batch_end-1}: Overlap/Duplicate batch.      ", end='\r')
 
@@ -215,7 +214,8 @@ def start_spider():
                     break
                     
                 page += batch_size
-                if page > 55000: break
+                # page limit removed to crawl until END_OF_PAGE
+
 
     print(f"\nCrawler finished. Final count: {TOTAL_UNIQUE} records saved in {OUTPUT_FILE}")
 
