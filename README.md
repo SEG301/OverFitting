@@ -60,15 +60,15 @@ SEG301-OverFitting/
 - **Cơ chế Tự động Phục hồi (Checkpoint)**: Duy trì trạng thái cào theo thời gian thực, cho phép tiếp tục công việc ngay lập tức sau sự cố.
 - **Quy trình Tiền xử lý Dữ liệu**:
   - **Làm sạch (Cleaning)**: Chuẩn hóa Case, loại bỏ mã HTML dư thừa và fix lỗi giải mã Unicode.
-  - **Khử trùng lặp (Deduplication)**: Áp dụng cơ chế lọc trùng thông minh (Dual-Key) dựa trên Mã số thuế và định danh thực thể.
+  - **Khử trùng lặp (Deduplication)**: Áp dụng cơ chế lọc trùng dựa trên Mã số thuế và định danh thực thể.
   - **Liên kết (Mapping)**: Khớp nối đánh giá (Reviews) từ nhiều nguồn vào đúng pháp nhân doanh nghiệp.
-  - **Tách từ (Segmentation)**: Tối ưu hóa dữ liệu tiếng Việt bằng thư viện `PyVi` (đạt tốc độ ~140.000 dòng/phút).
+  - **Tách từ (Segmentation)**: Tối ưu hóa dữ liệu tiếng Việt bằng thư viện `PyVi`.
 
 ---
 
 ### 📊 4. Thống kê bộ dữ liệu
 
-- **Tổng số lượng**: **1.842.525 documents** (Vượt mức 1 triệu yêu cầu).
+- **Tổng số lượng**: **1.842.525 documents**.
 
 - **Dung lượng**: ~6.1 GB (Dữ liệu sạch, đã tách từ).
 - **Định dạng**: JSON Lines (.jsonl).
@@ -115,10 +115,10 @@ python src/crawler/run_pipeline.py
 
 ### 🛡️ 6. Zero Tolerance Policy & AI Log
 
-Chúng tôi tuân thủ tuyệt đối quy định của môn học:
+Tuân thủ tuyệt đối quy định của môn học:
 
 - **GitHub**: Lịch sử commit đều đặn, rõ ràng từng tính năng.
-- **AI Log**: Toàn bộ quá trình trao đổi với AI được ghi lại trung thực tại `ai_log.md`.
+- **AI Log**: Toàn bộ quá trình trao đổi với AI được ghi lại tại `ai_log.md`.
 
 ---
 Nhóm OverFitting - 2026

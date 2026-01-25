@@ -16,7 +16,7 @@
 
 ## 2. Mục tiêu Chiến lược
 
-Mục tiêu cốt lõi của Milestone 1 là xây dựng một hệ sở dữ liệu (Database) có cấu trúc, đảm bảo độ phủ tối thiểu 1.000.000 bản ghi doanh nghiệp Việt Nam. Dữ liệu bao gồm các thông tin hành chính chính xác và các dữ liệu phi cấu trúc (Reviews) chất lượng cao, có thể tạo tiền đề vững chắc cho việc xây dựng thuật toán lập chỉ mục và tìm kiếm ở các giai đoạn sau.
+Mục tiêu cốt lõi của Milestone 1 là xây dựng một hệ sở dữ liệu (Database) có cấu trúc, đảm bảo độ phủ tối thiểu 1.000.000 bản ghi doanh nghiệp Việt Nam. Dữ liệu bao gồm các thông tin hành chính và các dữ liệu Reviews, có thể tạo tiền đề cho việc xây dựng thuật toán lập chỉ mục và tìm kiếm ở các giai đoạn sau.
 
 ---
 
@@ -44,7 +44,7 @@ Thay vì sử dụng phương pháp cào dữ liệu tuần tự, nhóm triển 
 
 - **Cơ chế**: Sử dụng thư viện `requests` kết hợp với `ThreadPoolExecutor`.
 - **Số lượng luồng**: Vận hành **100 luồng (workers)** đồng thời để tối ưu hóa hiệu suất truyền tải mạng.
-- **Quản lý kết nối**: Áp dụng **Connection Pooling** qua `HTTPAdapter`, giúp tái sử dụng các kết nối TCP đã thiết lập, giảm 40% độ trễ mạng.
+- **Quản lý kết nối**: Áp dụng **Connection Pooling** qua `HTTPAdapter`, giúp tái sử dụng các kết nối TCP đã thiết lập, giảm độ trễ mạng.
 - **Tự động phục hồi (Checkpoint)**: Hệ thống tự ghi nhận tiến độ theo thời gian thực. Trong trường hợp xảy ra sự cố (ngắt mạng, lỗi hệ thống), Crawler sẽ tự động tiếp tục từ vị trí đã dừng gần nhất.
 
 ### 4.2. Kỹ thuật Vượt rào cản Bảo mật (Anti-Bot)
@@ -68,11 +68,11 @@ Sử dụng thuật toán **Core-name Matching**: Tách lọc tên riêng của 
 
 ### Giai đoạn 2: Khử trùng lặp (Deduplication)
 
-Áp dụng cơ chế **Dual-Key filtering** để đảm bảo tính độc nhất của bản ghi:
+Áp dụng cơ chế **Dual-Key filtering** để đảm bảo tính duy nhất của bản ghi:
 
 1. **Khóa 1**: Mã số thuế.
 2. **Khóa 2**: Kết hợp chuỗi định danh gồm (Tên chuẩn hóa + Địa chỉ chuẩn hóa).
-Quy trình này đã loại bỏ hơn 36.000 bản ghi dư thừa phát sinh trong quá trình thu thập đa nguồn.
+Quy trình này đã loại bỏ các bản ghi dư thừa phát sinh trong quá trình thu thập đa nguồn.
 
 ### Giai đoạn 3: Làm sạch dữ liệu (Data Cleaning)
 
@@ -105,9 +105,9 @@ Dưới đây là các chỉ số đo lường chính xác từ bộ dữ liệu
 
 ## 7. Kết luận & Cam kết Tuân thủ
 
-- **Tính module hóa**: Toàn bộ mã nguồn được chia nhỏ thành các module chức năng (`utils.py`, `parser.py`, `step*.py`), dễ dàng bảo trì và mở rộng.
-- **Tính minh bạch**: File `ai_log.md` ghi chép đầy đủ quá trình thảo luận và giải quyết vấn đề kỹ thuật cùng trợ lý AI.
-- **Quy định môn học**: Dự án tuân thủ tuyệt đối quy định "Zero Tolerance Policy" về lịch sử commit và bản quyền mã nguồn.
+- **Tính module hóa**: Toàn bộ mã nguồn được chia nhỏ thành các module chức năng (`utils.py`, `parser.py`, `step*.py`).
+- **Tính minh bạch**: File `ai_log.md` ghi chép đầy đủ quá trình thảo luận và giải quyết vấn đề kỹ thuật cùng AI.
+- **Quy định môn học**: Dự án tuân thủ quy định về lịch sử commit và bản quyền mã nguồn.
 
 ---
 *Báo cáo được hoàn thiện bởi Nhóm OverFitting.*
