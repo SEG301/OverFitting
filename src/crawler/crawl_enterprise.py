@@ -149,72 +149,78 @@ def start_spider():
     
     global TOTAL_UNIQUE, STOP_FLAG
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as executor:
-        for region in REGIONS:
-            if STOP_FLAG: break
-            
-            # Smart Resume Calculation
-            existing_count = region_counts.get(region, 0)
-            # Estimate 20 records per page. 
-            # We subtract a safety buffer of 50 pages (1000 records) to ensure no gaps
-            start_page = max(1, (existing_count // 20) - 50) 
-            
-            print(f"\n--- SCANNING REGION: {region} ---")
-            print(f"   Note: Found {existing_count} existing records. Resuming from page ~{start_page}")
-            
-            page = start_page
-            while True:
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as executor:
+            for region in REGIONS:
                 if STOP_FLAG: break
-                batch_size = 50
-                batch_end = page + batch_size
-                print(f"[{region}] Fetching pages {page} to {batch_end-1}...", end='\r')
                 
-                futures = {executor.submit(crawling_job, region, p): p for p in range(page, batch_end)}
+                # Smart Resume Calculation
+                existing_count = region_counts.get(region, 0)
+                # Estimate 20 records per page. 
+                # We subtract a safety buffer of 50 pages (1000 records) to ensure no gaps
+                start_page = max(1, (existing_count // 20) - 50) 
                 
-                batch_data = []
-                stop_region = False
+                print(f"\n--- SCANNING REGION: {region} ---")
+                print(f"   Note: Found {existing_count} existing records. Resuming from page ~{start_page}")
                 
-                for future in concurrent.futures.as_completed(futures):
-                    res = future.result()
-                    if res == "END_OF_PAGE":
-                        stop_region = True
-                    elif isinstance(res, list):
-                        batch_data.extend(res)
-                
-                if batch_data:
-                    # Filter duplicates AGAIN just in case of overlap
-                    verified_new_items = []
-                    for item in batch_data:
-                        key = (item['tax_code'], item['company_name'], item['address'])
-                        # If crawling_job added it to SEEN, it's fine. 
-                        # But crawling_job checks SEEN too.
-                        # We just need to counting logic here.
-                        verified_new_items.append(item)
+                page = start_page
+                while True:
+                    if STOP_FLAG: break
+                    batch_size = 50
+                    batch_end = page + batch_size
+                    print(f"[{region}] Fetching pages {page} to {batch_end-1}...", end='\r')
+                    
+                    futures = {executor.submit(crawling_job, region, p): p for p in range(page, batch_end)}
+                    
+                    batch_data = []
+                    stop_region = False
+                    
+                    try:
+                        for future in concurrent.futures.as_completed(futures, timeout=30):
+                            res = future.result()
+                            if res == "END_OF_PAGE":
+                                stop_region = True
+                            elif isinstance(res, list):
+                                batch_data.extend(res)
+                    except concurrent.futures.TimeoutError:
+                        print(f"\n[{region}] Batch timed out, moving on...")
+                    except Exception as e:
+                        if not STOP_FLAG: print(f"\nError in batch: {e}")
 
-                    if verified_new_items:     
-                        batch_new = len(verified_new_items)
-                        batch_deep = sum(item.pop('_deep_batch', 0) for item in verified_new_items)
-                        
-                        with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
-                            for item in verified_new_items:
-                                f.write(json.dumps(item, ensure_ascii=False) + '\n')
-                        
-                        with LOCK:
-                            TOTAL_UNIQUE += batch_new
-                            print(f"[{region}] Pages {page}-{batch_end-1}: NEW {batch_new} | DEEP {batch_deep} | TOTAL {TOTAL_UNIQUE}      ")
+                    if STOP_FLAG: break
+
+                    if batch_data:
+                        verified_new_items = batch_data 
+
+                        if verified_new_items:     
+                            batch_new = len(verified_new_items)
+                            batch_deep = sum(item.pop('_deep_batch', 0) for item in verified_new_items)
+                            
+                            with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
+                                for item in verified_new_items:
+                                    f.write(json.dumps(item, ensure_ascii=False) + '\n')
+                            
+                            with LOCK:
+                                TOTAL_UNIQUE += batch_new
+                                print(f"[{region}] Pages {page}-{batch_end-1}: NEW {batch_new} | DEEP {batch_deep} | TOTAL {TOTAL_UNIQUE}      ")
+                        else:
+                             print(f"[{region}] Pages {page}-{batch_end-1}: Overlap/Duplicate batch.      ", end='\r')
 
                     else:
-                         print(f"[{region}] Pages {page}-{batch_end-1}: Overlap/Duplicate batch.      ", end='\r')
+                        print(f"[{region}] Pages {page}-{batch_end-1}: No new records found.      ", end='\r')
 
-                else:
-                    print(f"[{region}] Pages {page}-{batch_end-1}: No new records found.      ", end='\r')
+                    if stop_region:
+                        print(f"\nFinished Region: {region} (Reached last page)")
+                        break
+                        
+                    page += batch_size
+                    # page limit removed to crawl until END_OF_PAGE
 
-                if stop_region or STOP_FLAG:
-                    if stop_region: print(f"\nFinished Region: {region} (Reached last page)")
-                    break
-                    
-                page += batch_size
-                # page limit removed to crawl until END_OF_PAGE
+    except KeyboardInterrupt:
+        print("\n\n[!] STOP signal received (Ctrl+C). Saving progress and exiting safely...")
+        STOP_FLAG = True
+        # Detail executor also needs to stop
+        DETAIL_EXECUTOR.shutdown(wait=False, cancel_futures=True)
 
 
     print(f"\nCrawler finished. Final count: {TOTAL_UNIQUE} records saved in {OUTPUT_FILE}")
