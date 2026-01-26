@@ -43,7 +43,7 @@ Dữ liệu được khai thác và tổng hợp từ các nguồn uy tín để
 Thay vì sử dụng phương pháp cào dữ liệu tuần tự, nhóm triển khai kiến trúc **Parallel Crawler** (Thu thập song song):
 
 - **Cơ chế**: Sử dụng thư viện `requests` kết hợp với `ThreadPoolExecutor`.
-- **Số lượng luồng**: Vận hành **100 luồng (workers)** đồng thời để tối ưu hóa hiệu suất truyền tải mạng.
+- **Số lượng luồng**: Vận hành **50 luồng (workers)** đồng thời để tối ưu hóa hiệu suất truyền tải mạng.
 - **Quản lý kết nối**: Áp dụng **Connection Pooling** qua `HTTPAdapter`, giúp tái sử dụng các kết nối TCP đã thiết lập, giảm độ trễ mạng.
 - **Tự động phục hồi (Checkpoint)**: Hệ thống tự ghi nhận tiến độ theo thời gian thực. Trong trường hợp xảy ra sự cố (ngắt mạng, lỗi hệ thống), Crawler sẽ tự động tiếp tục từ vị trí đã dừng gần nhất.
 

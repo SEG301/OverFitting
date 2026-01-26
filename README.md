@@ -54,7 +54,7 @@ SEG301-OverFitting/
 
 ### 🛠️ 3. Kỹ thuật triển khai & Điểm nổi bật
 
-- **Hiệu năng cao**: Sử dụng `ThreadPoolExecutor` với **100 luồng** song song, tối ưu hóa tốc độ I/O bound.
+- **Hiệu năng cao**: Sử dụng `ThreadPoolExecutor` với **50 luồng** song song, tối ưu hóa tốc độ I/O bound.
 
 - **Anti-Bot & Security Bypass**: Tích hợp `curl_cffi` để giả lập TLS Fingerprint của trình duyệt Chrome 120, vượt qua các rào cản từ Cloudflare/WAF.
 - **Cơ chế Tự động Phục hồi (Checkpoint)**: Duy trì trạng thái cào theo thời gian thực, cho phép tiếp tục công việc ngay lập tức sau sự cố.

@@ -449,5 +449,17 @@
 
 **Final Result:** Project đã sẵn sàng nộp bài với cấu trúc chuẩn, code sạch và tài liệu đầy đủ.
 
+### Date: 2026-01-26
+
+**Task:** Tối ưu hóa độ ổn định (Stability Optimization).
+
+**User:** Có nên giảm số lượng worker từ 100 xuống còn 50 không?
+**AI:** Đề xuất giảm xuống 50 worker. Mặc dù tốc độ tối đa giảm đi, nhưng điều này giúp hệ thống ổn định hơn, tránh bị nhà mạng hoặc server chặn IP (Rate Limit) và giảm tải cho tài nguyên máy tính cục bộ khi chạy trong thời gian dài.
+**Action:**
+
+1. Cập nhật `crawl_enterprise.py`: `WORKERS = 50`.
+2. Cập nhật `README.md` và `Milestone1_Report.md`: Điều chỉnh các thông số kỹ thuật tương ứng.
+**Result:** Crawler hoạt động bền bỉ hơn, giảm thiểu rủi ro lỗi kết nối.
+
 ---
 *Lưu ý cho Giảng viên: Toàn bộ lịch sử chat thể hiện quá trình tự học, giải quyết vấn đề thực tế và sự phối hợp chặt chẽ giữa nhóm sinh viên và AI để hoàn thiện đồ án Milestone 1 một cách tối ưu nhất.*
