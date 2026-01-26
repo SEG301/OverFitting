@@ -95,7 +95,7 @@ Dưới đây là các chỉ số đo lường chính xác từ bộ dữ liệu
 | Chỉ số thống kê | Thông số chi tiết |
 | :--- | :--- |
 | **Tổng số tài liệu** | 1.842.525 |
-| **Kích thước từ vựng (Vocabulary)** | 57.589 từ vựng duy nhất |
+| **Kích thước từ vựng (Vocabulary)** | 18.087 từ vựng duy nhất |
 | **Độ dài trung bình mỗi tài liệu** | 143 từ/tài liệu |
 | **Tỷ lệ bao phủ Mã số thuế** | 100% |
 | **Số lượng Reviews tích hợp** | 10.223 đánh giá chi tiết |
