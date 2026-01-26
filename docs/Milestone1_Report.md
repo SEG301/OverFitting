@@ -76,7 +76,6 @@ Quy trình này đã loại bỏ các bản ghi dư thừa phát sinh trong quá
 
 ### Giai đoạn 3: Làm sạch dữ liệu (Data Cleaning)
 
-- **Chuẩn hóa Case**: Chuyển đổi dữ liệu từ chữ in hoa sang kiểu `Title Case` (Ví dụ: `CÔNG TY ABC` -> `Công Ty ABC`).
 - **Khắc phục lỗi hiển thị**: Xử lý triệt để các lỗi mã hóa Unicode (Mojibake) và các ký tự HTML dư thừa.
 - **Phân tách thực thể**: Sử dụng Regex để tách các dữ liệu bị dính liền do lỗi trình bày web (Ví dụ: `Quận1` -> `Quận 1`).
 
