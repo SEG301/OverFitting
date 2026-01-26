@@ -29,7 +29,7 @@ def fix_company_name(name):
     if not name or not isinstance(name, str): return ""
     
     # STRICT CHECK: Nếu có ký tự  (U+FFFD) -> XÓA LUÔN DÒNG
-    if '\uFFFD' in name or '' in name:
+    if '\uFFFD' in name:
         return None
     
     name = strip_html(name)
@@ -38,10 +38,11 @@ def fix_company_name(name):
     name = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', name)
     name = " ".join(name.split())
     
-    if is_mostly_uppercase(name):
-        name = name.title()
-        for wrong, right in {'Tnhh': 'TNHH', 'Cp': 'CP', 'Xnk': 'XNK', 'Tm': 'TM', 'Dv': 'DV', 'Sx': 'SX'}.items():
-            name = name.replace(wrong, right)
+    # [REMOVED] Logic chuyển Title Case theo yêu cầu mới: Giữ nguyên ALL CAPS gốc
+    # if is_mostly_uppercase(name):
+    #     name = name.title()
+    #     for wrong, right in {'Tnhh': 'TNHH', 'Cp': 'CP', 'Xnk': 'XNK', 'Tm': 'TM', 'Dv': 'DV', 'Sx': 'SX'}.items():
+    #         name = name.replace(wrong, right)
     
     return name.strip()
 
