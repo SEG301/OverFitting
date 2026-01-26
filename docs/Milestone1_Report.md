@@ -62,7 +62,7 @@ Dữ liệu thô sau khi thu thập được đưa vào hệ thống xử lý t�
 
 ### Giai đoạn 1: Liên kết dữ liệu (Review Mapping)
 
-Sử dụng thuật toán **Core-name Matching**: Tách lọc tên riêng của doanh nghiệp bằng cách lược bỏ các hậu tố pháp lý (Công ty, TNHH, CP...). Kết quả được kiểm chứng chéo qua địa giới hành chính (Tỉnh/Thành phố) để đảm bảo tính chính xác khi ghép nối các đánh giá vào đúng pháp nhân.
+Sử dụng thuật toán **Core-name Matching**: Tách lọc tên riêng của doanh nghiệp bằng cách lược bỏ các hậu tố pháp lý (Công ty, TNHH, CP...).
 
 - **Kết quả**: Liên kết thành công **10.223** đánh giá vào các doanh nghiệp tương ứng.
 
