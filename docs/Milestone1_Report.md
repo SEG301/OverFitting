@@ -16,7 +16,7 @@
 
 ## 2. Mục tiêu Chiến lược
 
-Mục tiêu cốt lõi của Milestone 1 là xây dựng một hệ sở dữ liệu (Database) có cấu trúc, đảm bảo độ phủ tối thiểu 1.000.000 bản ghi doanh nghiệp Việt Nam. Dữ liệu bao gồm các thông tin hành chính và các dữ liệu Reviews, có thể tạo tiền đề cho việc xây dựng thuật toán lập chỉ mục và tìm kiếm ở các giai đoạn sau.
+Mục tiêu cốt lõi của Milestone 1 là xây dựng một bộ dữ liệu có cấu trúc, đảm bảo độ phủ tối thiểu 1.000.000 bản ghi doanh nghiệp Việt Nam. Dữ liệu bao gồm các thông tin hành chính và các dữ liệu Reviews, có thể tạo tiền đề cho việc xây dựng thuật toán lập chỉ mục và tìm kiếm ở các giai đoạn sau.
 
 ---
 
