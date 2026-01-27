@@ -50,7 +50,7 @@ src/crawler/
 ├── crawl_enterprise.py      # Thu thập thông tin doanh nghiệp (Parallel)
 ├── crawl_reviews.py         # Thu thập đánh giá (ITviec, 1900)
 ├── step1_mapping.py         # Liên kết reviews vào doanh nghiệp
-├── step2_deduplicate.py     # Lọc trùng lặp Dual-Key
+├── step2_deduplicate.py     # Lọc trùng lặp
 ├── step3_cleaning.py        # Làm sạch HTML, font, Unicode
 ├── step4_segmentation.py    # Tách từ tiếng Việt (NLP)
 ├── run_pipeline.py          # Quản lý luồng xử lý tự động
