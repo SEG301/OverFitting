@@ -1,112 +1,127 @@
 # BÁO CÁO KỸ THUẬT MILESTONE 1: THU THẬP & TIỀN XỬ LÝ DỮ LIỆU
 
 **Môn học**: Search Engines & Information Retrieval (SEG301)  
-**Nhóm thực hiện**: OverFitting
+**Nhóm thực hiện**: OverFitting  
 **Chủ đề**: Vertical Search Engine cho Thông tin Doanh nghiệp & Reviews
 
 ---
 
-## 1. Thông tin Nhóm Dự án
+## 1. Thông tin thành viên
 
-- **Nguyễn Thanh Trà** - QE190099
-- **Phan Đỗ Thanh Tuấn** - QE190123
-- **Châu Thái Nhật Minh** - QE190109
+* **Nguyễn Thanh Trà** - QE190099
+* **Phan Đỗ Thanh Tuấn** - QE190123
+* **Châu Thái Nhật Minh** - QE190109
 
 ---
 
-## 2. Mục tiêu Chiến lược
+## 2. Mục tiêu
 
-Mục tiêu cốt lõi của Milestone 1 là xây dựng một bộ dữ liệu có cấu trúc, đảm bảo độ phủ tối thiểu 1.000.000 bản ghi doanh nghiệp Việt Nam. Dữ liệu bao gồm các thông tin hành chính và các dữ liệu Reviews, có thể tạo tiền đề cho việc xây dựng thuật toán lập chỉ mục và tìm kiếm ở các giai đoạn sau.
+Mục tiêu cốt lõi của Milestone 1 là chuyển đổi dữ liệu thô từ môi trường web thành một **bộ dữ liệu có cấu trúc (Structured Dataset)**. Bộ dữ liệu này đảm bảo:
+
+* **Quy mô**: Đạt mốc **1.842.525** bản ghi (vượt xa mục tiêu 1.000.000 ban đầu).
+* **Sẵn sàng cho Indexing**: Dữ liệu đã được làm sạch và tách từ (Segmentation), sẵn sàng làm đầu vào cho các thuật toán đánh chỉ mục ở Milestone 2.
 
 ---
 
 ## 3. Nguồn Dữ liệu & Quy mô
 
-Dữ liệu được khai thác và tổng hợp từ các nguồn uy tín để đảm bảo tính xác thực và đa dạng:
+Dữ liệu được khai thác từ 3 nguồn bổ trợ lẫn nhau:
 
-1. **InfoDoanhNghiep.com**: Cung cấp thông tin pháp lý nền tảng của hơn 1.8 triệu doanh nghiệp.
-2. **ITviec.com**: Trích xuất các đánh giá chuyên sâu về môi trường làm việc trong lĩnh vực CNTT.
-3. **1900.com.vn**: Trích xuất các đánh giá đa chiều về trải nghiệm khách hàng và nhân sự.
+1. **InfoDoanhNghiep.com**: Cung cấp thông tin pháp lý (Tên công ty, Mã số thuế, Địa chỉ, Ngày thành lập, Người đại diện...) của hơn 1.8 triệu doanh nghiệp Việt Nam.
+2. **ITviec.com**: Trích xuất các đánh giá chuyên sâu về môi trường làm việc, chế độ đãi ngộ đặc thù trong lĩnh vực Công nghệ thông tin.
+3. **1900.com.vn**: Một nguồn dữ liệu cung cấp đánh giá về môi trường làm việc cho nhân sự.
 
 **Kết quả đạt được**:
 
-- **Tổng số bản ghi duy nhất**: **1.842.525** tài liệu.
-- **Tổng dung lượng**: **6.12 GB** (Định dạng JSONL).
-- **Chất lượng**: 100% dữ liệu đã được làm sạch, khử trùng lặp và tách từ tiếng Việt.
+* **Tổng số bản ghi**: 1.842.525 tài liệu.
+* **Dung lượng**: 6.2 GB (Định dạng JSONL).
+* **Định dạng lưu trữ**: Mọi bản ghi được lưu trữ dưới dạng JSON Lines, mỗi dòng là một đối tượng có schema thống nhất.
 
 ---
 
 ## 4. Giải pháp Kỹ thuật
 
-### 4.1. Hệ thống Thu thập Dữ liệu (Crawler)
+### 4.1. Cấu trúc Thư mục Source Code
 
-Thay vì sử dụng phương pháp cào dữ liệu tuần tự, nhóm triển khai kiến trúc **Parallel Crawler** (Thu thập song song):
+Để đảm bảo tính module hóa và dễ bảo trì, mã nguồn được tổ chức như sau:
 
-- **Cơ chế**: Sử dụng thư viện `requests` kết hợp với `ThreadPoolExecutor`.
-- **Số lượng luồng**: Vận hành **50 luồng (workers)** đồng thời để tối ưu hóa hiệu suất truyền tải mạng.
-- **Quản lý kết nối**: Áp dụng **Connection Pooling** qua `HTTPAdapter`, giúp tái sử dụng các kết nối TCP đã thiết lập, giảm độ trễ mạng.
-- **Tự động phục hồi (Checkpoint)**: Hệ thống tự ghi nhận tiến độ theo thời gian thực. Trong trường hợp xảy ra sự cố (ngắt mạng, lỗi hệ thống), Crawler sẽ tự động tiếp tục từ vị trí đã dừng gần nhất.
+```text
+src/crawler/
+├── crawl_enterprise.py      # Thu thập thông tin doanh nghiệp (Parallel)
+├── crawl_reviews.py         # Thu thập đánh giá (ITviec, 1900)
+├── step1_mapping.py         # Liên kết reviews vào doanh nghiệp
+├── step2_deduplicate.py     # Lọc trùng lặp Dual-Key
+├── step3_cleaning.py        # Làm sạch HTML, font, Unicode
+├── step4_segmentation.py    # Tách từ tiếng Việt (NLP)
+├── run_pipeline.py          # Quản lý luồng xử lý tự động
+├── parser.py                # Logic bóc tách HTML chuyên biệt
+└── utils.py                 # Hàm tiện ích chuẩn hóa
+```
 
-### 4.2. Kỹ thuật Vượt rào cản Bảo mật (Anti-Bot)
+### 4.2. Hệ thống Thu thập Dữ liệu (Crawler)
 
-Đối với các website có lớp bảo mật Cloudflare gắt gao như ITviec, nhóm áp dụng thư viện **`curl_cffi`**:
+Nhóm triển khai kiến trúc **Parallel Crawler** thay vì thu thập tuần tự:
 
-- **Nguyên lý**: Giả lập chuẩn **TLS Client Hello** của trình duyệt Chrome 120.
-- **Hiệu quả**: Vượt qua các thuật toán kiểm tra dấu vân tay trình duyệt (Browser Fingerprinting) mà không cần tiêu tốn tài nguyên cho các trình duyệt ảo (Selenium/Playwright).
+* **Tối ưu luồng**: Vận hành **50 threads** đồng thời với `ThreadPoolExecutor`, giúp rút ngắn thời gian thu thập so với phương pháp thông thường.
+* **Quản lý kết nối**: Duy trì các kết nối mạng sẵn có (Connection Pooling) để dùng lại cho các yêu cầu sau, giúp tiết kiệm thời gian khởi tạo lại từ đầu cho mỗi bản ghi.
+* **Cơ chế Checkpoint (Smart Resume)**: Tự động phân tích tệp đầu ra để xác định tiến độ của từng khu vực, từ đó tính toán chính xác số trang cần cào tiếp theo mà không cần tệp trung gian.
+
+### 4.3. Kỹ thuật Vượt rào cản (Anti-Bot)
+
+Thay vì sử dụng các trình duyệt ảo (Selenium/Playwright) tốn tài nguyên, nhóm áp dụng **`curl_cffi`**:
+
+* **Giả lập TLS Fingerprint**: Bắt chước chuẩn *TLS Client Hello* của Chrome 120. điều này cho phép vượt qua các lớp bảo vệ của Cloudflare mà không bị nhận diện là bot.
+* **Hiệu quả**: Tiết kiệm RAM và CPU hơn so với trình duyệt không đầu (Headless Browser).
 
 ---
 
-## 5. Quy trình Tiền xử lý Dữ liệu (Pipeline)
+## 5. Quy trình Xử lý Dữ liệu (Data Pipeline)
 
-Dữ liệu thô sau khi thu thập được đưa vào hệ thống xử lý tự động gồm 4 giai đoạn logic:
+Quy trình biến dữ liệu "thô" thành dữ liệu "sạch" qua 4 giai đoạn:
 
 ### Giai đoạn 1: Liên kết dữ liệu (Review Mapping)
 
-Sử dụng thuật toán **Core-name Matching**: Tách lọc tên riêng của doanh nghiệp bằng cách lược bỏ các hậu tố pháp lý (Công ty, TNHH, CP...).
+Sử dụng phương pháp **Core-name Matching**:
 
-- **Kết quả**: Liên kết thành công **10.223** đánh giá vào các doanh nghiệp tương ứng.
+* Loại bỏ các thuật ngữ pháp lý dư thừa (như "Công ty", "TNHH", "CP"...) và chuẩn hóa văn bản để trích xuất tên định danh thực tế (ví dụ: giúp khớp nối "Công ty TNHH FPT" và "FPT" thành cùng một đối tượng).
+* Khớp nối hàng chục nghìn reviews từ các trang đánh giá vào đúng doanh nghiệp dựa trên tên định danh đã chuẩn hóa.
 
 ### Giai đoạn 2: Khử trùng lặp (Deduplication)
 
-Áp dụng cơ chế **Dual-Key filtering** để đảm bảo tính duy nhất của bản ghi:
+Áp dụng cơ chế **Triple-Key filtering** để đảm bảo tính duy nhất:
 
-1. **Khóa 1**: Mã số thuế.
-2. **Khóa 2**: Kết hợp chuỗi định danh gồm (Tên chuẩn hóa + Địa chỉ chuẩn hóa).
-Quy trình này đã loại bỏ các bản ghi dư thừa phát sinh trong quá trình thu thập đa nguồn.
+* **Khóa định danh**: Kết hợp bộ ba (Mã số thuế + Tên chuẩn hóa + Địa chỉ chuẩn hóa).
+* **Tác dụng**: Loại bỏ các bản ghi trùng lặp phát sinh khi thu thập dữ liệu từ nhiều nguồn hoặc cào lại nhiều lần, đảm bảo mỗi doanh nghiệp chỉ xuất hiện một lần duy nhất.
 
 ### Giai đoạn 3: Làm sạch dữ liệu (Data Cleaning)
 
-- **Khắc phục lỗi hiển thị**: Xử lý triệt để các lỗi mã hóa Unicode (Mojibake) và các ký tự HTML dư thừa.
-- **Phân tách thực thể**: Sử dụng Regex để tách các dữ liệu bị dính liền do lỗi trình bày web (Ví dụ: `Quận1` -> `Quận 1`).
+* Xử lý **Unicode/Mojibake**: Khắc phục các lỗi hiển thị tiếng Việt do sai lệch mã hóa web.
+* **Regex Processing**: Sửa lỗi trình bày như dính chữ (ví dụ: `HàNội` -> `Hà Nội`) và loại bỏ các thẻ HTML rác còn sót lại.
 
 ### Giai đoạn 4: Tách từ tiếng Việt (Word Segmentation)
 
-Tạo tiền đề cho Milestone 2 bằng cách sử dụng thư viện **PyVi**:
+Sử dụng thư viện **PyVi**:
 
-- Thực hiện tách từ cho các trường thông tin quan trọng như Tên công ty, Địa chỉ và Nội dung đánh giá.
-- **Tốc độ xử lý**: Đạt xấp xỉ **140.000 dòng/phút**, đảm bảo hiệu suất xử lý trên quy mô hàng triệu bản ghi.
+* Đây là bước then chốt cho Milestone 2. Việc tách từ giúp Search Engine hiểu được các từ ghép tiếng Việt (ví dụ: `môi_trường`, `phát_triển`), nâng cao độ chính xác của thuật toán tìm kiếm.
+* Toàn bộ hơn 1.8 triệu bản ghi đã được tách từ tự động.
 
 ---
 
 ## 6. Thống kê Chi tiết (Data Statistics)
 
-Dưới đây là các chỉ số đo lường chính xác từ bộ dữ liệu cuối cùng:
-
 | Chỉ số thống kê | Thông số chi tiết |
 | :--- | :--- |
 | **Tổng số tài liệu** | 1.842.525 |
-| **Kích thước từ vựng (Vocabulary)** | 18.087 từ vựng duy nhất |
+| **Số lượng từ vựng (Vocabulary)** | 18.087 từ vựng duy nhất |
 | **Độ dài trung bình mỗi tài liệu** | 143 từ/tài liệu |
-| **Tỷ lệ bao phủ Mã số thuế** | 100% |
 | **Số lượng Reviews tích hợp** | 10.223 đánh giá chi tiết |
+| **Dung lượng file tổng** | 6.2 GB |
 
 ---
 
-## 7. Kết luận & Cam kết Tuân thủ
+## 7. Kết luận & Cam kết
 
-- **Tính module hóa**: Toàn bộ mã nguồn được chia nhỏ thành các module chức năng (`utils.py`, `parser.py`, `step*.py`).
-- **Tính minh bạch**: File `ai_log.md` ghi chép đầy đủ quá trình thảo luận và giải quyết vấn đề kỹ thuật cùng AI.
-- **Quy định môn học**: Dự án tuân thủ quy định về lịch sử commit và bản quyền mã nguồn.
+Bộ dữ liệu Milestone 1 hiện đã đạt trạng thái: Sạch, có cấu trúc, quy mô lớn và đã được xử lý. Đây có thể là nền tảng vững chắc để nhóm triển khai hệ thống Indexing và Ranking ở Milestone tiếp theo.
 
 ---
-*Báo cáo được hoàn thiện bởi Nhóm OverFitting.*
+*Báo cáo được hoàn thiện bởi Nhóm OverFitting - SEG301.*

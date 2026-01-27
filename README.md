@@ -70,7 +70,7 @@ SEG301-OverFitting/
 
 - **Tổng số lượng**: **1.842.525 documents**.
 
-- **Dung lượng**: ~6.1 GB (Dữ liệu sạch, đã tách từ).
+- **Dung lượng**: ~6.2 GB (Dữ liệu sạch, đã tách từ).
 - **Định dạng**: JSON Lines (.jsonl).
 - **Link tải full dataset**: [Google Drive Link](https://drive.google.com/drive/folders/1XdAX7aw-ibpCniuHVyMNmUkD9JHv-dK-?usp=sharing)
 
