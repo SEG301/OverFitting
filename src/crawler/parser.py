@@ -2,11 +2,6 @@ import re
 from bs4 import BeautifulSoup
 from .utils import normalize_text, get_now_iso
 
-# Try import pyvi for Word Segmentation
-try:
-    from pyvi import ViTokenizer
-except ImportError:
-    ViTokenizer = None
 
 def parse_company_list(html_content, base_url=""):
     """
@@ -54,23 +49,10 @@ def parse_company_list(html_content, base_url=""):
             'company_name': name_norm,
             'tax_code': tax_code,
             'address': addr_norm,
-            'company_name_seg': '',
-            'address_seg': '',
             'source': 'InfoDoanhNghiep',
             'url': link if link.startswith('http') else (base_url + link) if link.startswith('/') else (base_url + "/" + link), 
             'crawled_at': get_now_iso()
         }
-        
-        # Word Segmentation (Milestone 1 requirement)
-        if ViTokenizer:
-            try:
-                item['company_name_seg'] = ViTokenizer.tokenize(item['company_name'])
-                item['address_seg'] = ViTokenizer.tokenize(item['address'])
-            except:
-                pass
-        else:
-            # Fallback for simple cleaning if pyvi is missing
-            item['company_name_seg'] = item['company_name'].replace(" ", "_")
 
         results.append(item)
             

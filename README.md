@@ -1,57 +1,124 @@
-# SEG301 - Vertical Search Engine (Topic 3: Thông tin Doanh nghiệp & Review)
+# SEG301 - SEARCH ENGINES & INFORMATION RETRIEVAL
 
-Dự án xây dựng công cụ tìm kiếm và phân tích dữ liệu doanh nghiệp quy mô lớn phục vụ môn học Search Engines & Information Retrieval (SEG301).
+## Milestone 1: Data Acquisition (20%)
 
-## 1. Thành viên nhóm - Project Group
-- **Nhóm**: OverFitting
+## Nhóm thực hiện: OverFitting
 
-## 2. Cấu trúc thư mục (Github Structure)
-Dự án được tổ chức theo module hóa để đảm bảo khả năng mở rộng và bảo trì:
-- `.gitignore`: Cấu hình bỏ qua môi trường ảo (`venv`), các file rác và dữ liệu lớn (`data/`).
-- `README.md`: Hướng dẫn cài đặt, sử dụng và thông tin dataset.
-- `ai_log.md`: Nhật ký tương tác chi tiết với trợ lý AI (Lịch sử giải quyết lỗi, tối ưu crawler).
-- `requirements.txt`: Danh sách các thư viện cần thiết.
-- `docs/`: Chứa các báo cáo kỹ thuật cho từng Milestone.
-- `data_sample/`: Chứa dữ liệu mẫu (100-500 dòng) để giảng viên kiểm tra nhanh cấu trúc dữ liệu.
-- `src/`: Mã nguồn chính của dự án.
-    - `crawler/`: Milestone 1 - Thu thập dữ liệu (Spider, Parser, Utils).
-    - `indexer/`: Milestone 2 - Tạo chỉ mục (Placeholder).
-    - `ranking/`: Milestone 2/3 - Xếp hạng & Tìm kiếm (Placeholder).
-    - `ui/`: Milestone 3 - Giao diện người dùng (Placeholder).
+### 👥 Thành viên nhóm
 
-## 3. Milestone 1: Data Acquisition (Thu thập dữ liệu)
-Chúng tôi đã xây dựng hệ thống cào dữ liệu hiệu năng cao cho hơn 63 tỉnh thành tại Việt Nam.
+1. **Nguyễn Thanh Trà** - QE190099
+2. **Phan Đỗ Thanh Tuấn** - QE190123
+3. **Châu Thái Nhật Minh** - QE190109
 
-### Kỹ thuật sử dụng:
-- **Đa luồng (Multi-threading)**: Sử dụng `ThreadPoolExecutor` với **50 workers** giúp tối ưu hóa băng thông mạng.
-- **Cơ chế Sweeping**: Quét dữ liệu theo Batch (50 trang/lần) để duy trì tốc độ ổn định.
-- **Cơ chế Resume**: Tự động nhận diện checkpoint từ dữ liệu đã cào để tiếp tục công việc khi bị gián đoạn.
-- **Xử lý Pagination**: Bổ sung logic nhận diện Redirect để dừng crawler chính xác khi hết trang (Soft Redirect Detection).
-- **Làm sạch dữ liệu & Tách từ**:
-    - Trích xuất MST, Tên, Địa chỉ bằng Regex.
-    - Lọc trùng theo bộ khóa `(Tax_Code, Company_Name, Address)`.
-    - Tách từ tiếng Việt bằng thư viện `PyVi`.
+---
 
-### Cách chạy Crawler:
-```bash
-# 1. Cài đặt môi trường
-pip install -r requirements.txt
+### 📝 1. Tổng quan & Mục tiêu
 
-# 2. Chạy crawler chính (Quét 63 tỉnh thành)
-python -m src.crawler.spider
-# Hoặc sử dụng shortcut:
-python src/crawler/speed_crawler.py
+Dự án tập trung xây dựng một **Vertical Search Engine** (Máy tìm kiếm chuyên biệt) cho chủ đề **Thông tin Doanh nghiệp & Review**.
+
+- **Mục tiêu chính**: Xây dựng bộ dữ liệu sạch tối thiểu **1.000.000 documents**.
+- **Nguồn dữ liệu**: infodoanhnghiep.com, itviec.com, 1900.com.vn.
+- **Công nghệ**: Python, High-performance Multi-threading, NLP (Word Segmentation).
+
+---
+
+### 📂 2. Cấu trúc thư mục dự án
+
+Hệ thống được tổ chức theo module hóa nghiêm ngặt theo yêu cầu môn học:
+
+```text
+SEG301-OverFitting/
+├── src/                     # Source code chính
+│   ├── __init__.py
+│   └── crawler/             # Milestone 1: Code thu thập & xử lý
+│       ├── crawl_enterprise.py      # Cào dữ liệu gốc từ InfoDoanhNghiep
+│       ├── crawl_reviews.py         # Cào dữ liệu review từ ITviec & 1900
+│       ├── step1_mapping.py         # Khớp review vào dữ liệu doanh nghiệp
+│       ├── step2_deduplicate.py     # Loại bỏ trùng lặp (Dual-Key)
+│       ├── step3_cleaning.py        # Làm sạch (HTML, Title Case, Fix lỗi font)
+│       ├── step4_segmentation.py    # Tách từ tiếng Việt (Word Segmentation)
+│       ├── run_pipeline.py          # File thực thi toàn bộ luồng xử lý
+│       ├── parser.py                # Logic bóc tách HTML chuyên sâu
+│       └── utils.py                 # Hàm tiện ích chuẩn hóa
+├── docs/                    # Thư mục báo cáo & tài liệu
+│   └── Milestone1_Report.md # Báo cáo chi tiết Milestone 1
+├── data_sample/             # Dữ liệu mẫu (100 docs)
+│   └── sample.jsonl
+├── requirements.txt         # Các thư viện cần thiết (pip install -r ...)
+├── .gitignore               # Cấu hình bỏ qua rác và dữ liệu lớn
+├── ai_log.md                # Nhật ký sử dụng AI (Bắt buộc)
+└── README.md                # Hướng dẫn này
 ```
 
-## 4. Dữ liệu (Dataset)
-- **Tổng số lượng bản ghi**: **1.848.043** documents.
-- **Định dạng**: JSONL (Json Lines).
-- **Link tải Full Dataset**: [Google Drive - Full Data Milestone 1](https://drive.google.com/drive/folders/1XdAX7aw-ibpCniuHVyMNmUkD9JHv-dK-?usp=sharing)
-- **Mẫu dữ liệu**: Xem tại `data_sample/sample.jsonl`.
+---
 
-## 5. Nhật ký AI (ai_log.md)
-File `ai_log.md` ghi lại chi tiết toàn bộ quá trình trao đổi với AI, bao gồm các bước:
-- Chuyển đổi công nghệ từ Selenium (Masothue) sang Requests (Infodoanhnghiep).
-- Cách cấu hình đa luồng để vượt mốc 1 triệu bản ghi.
-- Logic gỡ lỗi Infinite Pagination Loop.
-- Quá trình Refactor mã nguồn thành dạng Module.
+### 🛠️ 3. Kỹ thuật triển khai & Điểm nổi bật
+
+- **Hiệu năng cao**: Sử dụng `ThreadPoolExecutor` với **50 luồng** song song, tối ưu hóa tốc độ I/O bound.
+
+- **Anti-Bot & Security Bypass**: Tích hợp `curl_cffi` để giả lập TLS Fingerprint của trình duyệt Chrome 120, vượt qua các rào cản từ Cloudflare/WAF.
+- **Cơ chế Tự động Phục hồi (Checkpoint)**: Duy trì trạng thái cào theo thời gian thực, cho phép tiếp tục công việc ngay lập tức sau sự cố.
+- **Quy trình Tiền xử lý Dữ liệu**:
+  - **Làm sạch (Cleaning)**: Chuẩn hóa Case, loại bỏ mã HTML dư thừa và fix lỗi giải mã Unicode.
+  - **Khử trùng lặp (Deduplication)**: Áp dụng cơ chế lọc trùng dựa trên Mã số thuế và định danh thực thể.
+  - **Liên kết (Mapping)**: Khớp nối đánh giá (Reviews) từ nhiều nguồn vào đúng pháp nhân doanh nghiệp.
+  - **Tách từ (Segmentation)**: Tối ưu hóa dữ liệu tiếng Việt bằng thư viện `PyVi`.
+
+---
+
+### 📊 4. Thống kê bộ dữ liệu
+
+- **Tổng số lượng**: **1.842.525 documents**.
+
+- **Dung lượng**: ~6.2 GB (Dữ liệu sạch, đã tách từ).
+- **Định dạng**: JSON Lines (.jsonl).
+- **Link tải full dataset**: [Google Drive Link](https://drive.google.com/drive/folders/1XdAX7aw-ibpCniuHVyMNmUkD9JHv-dK-?usp=sharing)
+
+---
+
+### 💻 5. Hướng dẫn cài đặt & Chạy dự án
+
+#### Bước 1: Khởi tạo môi trường
+
+```bash
+# Clone repository
+git clone https://github.com/SEG301/OverFitting.git
+cd SEG301-OverFitting
+
+# Tạo và kích hoạt môi trường ảo
+python -m venv venv
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Cài đặt thư viện
+pip install -r requirements.txt
+```
+
+#### Bước 2: Chạy crawler (Nếu cần thu thêm dữ liệu)
+
+```bash
+python src/crawler/crawl_enterprise.py
+python src/crawler/crawl_reviews.py
+```
+
+#### Bước 3: Chạy Pipeline xử lý dữ liệu sạch
+
+File này sẽ tự động chạy từ Step 1 đến Step 4:
+
+```bash
+python src/crawler/run_pipeline.py
+```
+
+---
+
+### 🛡️ 6. Zero Tolerance Policy & AI Log
+
+Tuân thủ tuyệt đối quy định của môn học:
+
+- **GitHub**: Lịch sử commit đều đặn, rõ ràng từng tính năng.
+- **AI Log**: Toàn bộ quá trình trao đổi với AI được ghi lại tại `ai_log.md`.
+
+---
+Nhóm OverFitting - 2026

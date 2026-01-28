@@ -5,13 +5,13 @@ __pycache__/
 venv/
 .env
 
-# Data
+# Data & Logs
 data/
 data_member1/
 data_browsers/
-*.jsonl
-*.json
+support/
 *.log
+!data_sample/sample.jsonl
 
 # Artifacts
 .DS_Store
@@ -20,3 +20,6 @@ data_browsers/
 # Keep ai_log.md if you want to track history on git, but usually logs are ignored.
 # BUT USER ASKED TO UPLOAD LOG. So I will comment it out.
 # ai_log.md
+# Backup/Old Code
+code2/
+code3/
