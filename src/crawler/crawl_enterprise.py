@@ -36,6 +36,7 @@ DEEP_CRAWL = True
 # MAX_DOCS = 1000000 # Removed limit as per request
 
 OUTPUT_FILE = Path("data/enterprise_data.jsonl")
+FAILED_LOG = Path("data/failed_deep_crawl.jsonl")
 
 # --- GLOBAL SESSION & POOLS ---
 SESSION = requests.Session()
@@ -70,10 +71,10 @@ def fetch_single_detail(item):
         if resp.status_code == 200:
             details = parse_company_detail(resp.text)
             item.update(details)
-            return True
+            return True, item
     except:
         pass
-    return False
+    return False, item
 
 def crawling_job(region, page):
     """Fetches and parses a single page."""
@@ -98,13 +99,28 @@ def crawling_job(region, page):
         
         if DEEP_CRAWL and unique_results:
             # Using GLOBAL executor for maximum thread reuse
-            deep_success = 0
+            success_items = []
+            failed_items = []
             futures = [DETAIL_EXECUTOR.submit(fetch_single_detail, it) for it in unique_results]
             for fut in concurrent.futures.as_completed(futures):
-                if fut.result(): deep_success += 1
+                success, it = fut.result()
+                if success:
+                    success_items.append(it)
+                else:
+                    failed_items.append(it)
             
-            if unique_results:
-                unique_results[0]['_deep_batch'] = deep_success
+            if failed_items:
+                with LOCK:
+                    with open(FAILED_LOG, 'a', encoding='utf-8') as f:
+                        for it in failed_items:
+                            f.write(json.dumps(it, ensure_ascii=False) + '\n')
+            
+            # Return ONLY success items for the main output file
+            if success_items:
+                # Mark the first item of the batch with total successes for terminal printing
+                success_items[0]['_deep_batch'] = len(success_items)
+            
+            return success_items
                     
         return unique_results
     except:
@@ -166,8 +182,8 @@ def start_spider():
                 # Smart Resume Calculation
                 existing_count = region_counts.get(region, 0)
                 # Estimate 20 records per page. 
-                # We subtract a safety buffer of 50 pages (1000 records) to ensure no gaps
-                start_page = max(1, (existing_count // 20) - 50) 
+                # We subtract a safety buffer of 10 pages (200 records) to ensure no gaps
+                start_page = max(1, (existing_count // 20) - 10) 
                 
                 print(f"\n--- SCANNING REGION: {region} ---")
                 print(f"   Note: Found {existing_count} existing records. Resuming from page ~{start_page}")
@@ -213,7 +229,9 @@ def start_spider():
                         
                         with LOCK:
                             TOTAL_UNIQUE += len(batch_data)
-                            print(f"[{region}] Pages {page}-{batch_end-1}: NEW {len(batch_data)} | TOTAL {TOTAL_UNIQUE}      ")
+                            # Calculate total deep successes in this batch
+                            batch_deep = sum(it.get('_deep_batch', 0) for it in batch_data if '_deep_batch' in it)
+                            print(f"[{region}] Pages {page}-{batch_end-1}: NEW {len(batch_data)} | DEEP {batch_deep} | TOTAL {TOTAL_UNIQUE}      ")
 
                     if stop_region:
                         print(f"\nFinished Region: {region}")
