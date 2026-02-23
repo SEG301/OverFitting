@@ -462,4 +462,52 @@
 **Result:** Crawler hoạt động bền bỉ hơn, giảm thiểu rủi ro lỗi kết nối.
 
 ---
-*Lưu ý cho Giảng viên: Toàn bộ lịch sử chat thể hiện quá trình tự học, giải quyết vấn đề thực tế và sự phối hợp chặt chẽ giữa nhóm sinh viên và AI để hoàn thiện đồ án Milestone 1 một cách tối ưu nhất.*
+
+## 4. Milestone 2: Core Search Engine (SPIMI & BM25)
+
+### Date: 2026-02-22 -> 2026-02-23
+
+**Task:** Xây dựng hệ thống tìm kiếm cốt lõi sử dụng thuật toán SPIMI và xếp hạng BM25.
+
+**User:** Bắt đầu Milestone 2. Tôi cần xây dựng Indexer sử dụng thuật toán SPIMI để xử lý 1.8 triệu docs mà không làm tràn RAM.
+**AI:** Tôi đề xuất chia dữ liệu thành các blocks (vd: 50,000 docs/block). Mỗi block sẽ được index trong RAM rồi ghi xuống đĩa dưới dạng file pickle tạm thời. Sau đó chúng ta sẽ dùng K-way merge để gộp lại.
+
+**User:** Khi tôi gộp tất cả thành một file `final_index.pkl` khổng lồ (1GB), máy bị treo khi load. Làm sao tối ưu?
+**AI:** Đã chuyển đổi sang **Kiến trúc 2-file**:
+
+1. **`term_dict.pkl`**: Chỉ chứa mapping từ và vị trí byte (offset). File này rất nhẹ (~18MB), load vào RAM cực nhanh.
+2. **`postings.bin`**: Chứa dữ liệu danh sách văn bản (postings) dạng nhị phân. Khi search, ta chỉ cần `seek` đến đúng vị trí byte và đọc phần cần thiết, không cần load toàn bộ file 1GB vào RAM.
+
+**User:** File metadata (thông tin công ty) để hiển thị kết quả cũng nặng tới 1.8GB, vẫn bị treo máy.
+**AI:** Một đột phá mới! Tôi đã thay thế việc lưu Metadata bằng **`doc_offsets.pkl` (~20MB)**.
+
+- Thay vì lưu nội dung, ta lưu vị trí byte của từng dòng trong file `milestone1_fixed.jsonl`.
+- Khi hiển thị kết quả search, ta dùng `seek` để đọc trực tiếp từ file JSONL gốc.
+- **Kết quả:** RAM tiêu thụ giảm từ 3GB+ xuống còn **~55MB**. Thời gian khởi động giảm từ 15 phút xuống **0.7 giây**.
+
+**User:** Search các từ phổ biến như "công_ty" vẫn bị chậm.
+**AI:** Do postings list của từ "công_ty" chứa tới 1.5 triệu văn bản. Tôi đã thêm cơ chế **Stopword/Common Term Filter**:
+
+- Tự động bỏ qua các từ xuất hiện trong >30% tổng số văn bản (vì IDF của chúng rất thấp, không quan trọng cho xếp hạng).
+- **Kết quả:** Tốc độ search các từ khóa phổ biến giờ chỉ mất **< 0.1 giây**.
+
+**Result:** Hoàn thiện bộ code `spimi.py`, `merging.py`, `bm25.py` và `search_console.py` với hiệu năng cực cao.
+
+**Task:** Tối ưu hóa trải nghiệm tìm kiếm (Automatic Query Segmentation).
+
+**User:** Có cách nào để query không cần nhập dấu gạch dưới mà hệ thống vẫn đạt độ chính xác tốt không?
+**AI:** Đã tích hợp thư viện `pyvi` vào module `BM25Searcher`.
+
+- **Cải tiến:** Khi người dùng nhập query có khoảng trắng (vd: `công nghệ`), hệ thống sẽ tự động gọi `ViTokenizer.tokenize()` để chuyển đổi thành token đúng định dạng index (`công_nghệ`).
+- **Lợi ích:** Người dùng không cần quan tâm đến định dạng lưu trữ bên dưới, chỉ cần gõ tiếng Việt tự nhiên.
+- **Robustness:** Có cơ chế try-except để đảm bảo code vẫn chạy kể cả khi môi trường chưa cài `pyvi`.
+- **Môi trường:** Toàn bộ quá trình cài đặt và chạy thử nghiệm tính năng này được thực hiện trong môi trường ảo (`venv`) của dự án để đảm bảo tính cô lập và đúng yêu cầu đồ án.
+
+**Task:** Dọn dẹp hệ thống và đóng gói Milestone 2.
+
+**User:** Kiểm tra lại folder data/index xem có file nào cũ không dùng không thì xóa đi, rồi đẩy dự án lên github nhé.
+**AI:** Đã thực hiện dọn dẹp các file rác và file index cũ để tối ưu dung lượng:
+
+- **Xóa:** `doc_metadata.pkl` (1.8GB), `final_index.pkl` (1.1GB) và thư mục tạm `blocks/`.
+- **Giữ lại:** Bộ index 2-file tối ưu (`term_dict.pkl`, `postings.bin`) và các file cần thiết (`doc_lengths.pkl`, `doc_offsets.pkl`).
+- **Git:** Kiểm tra lại `.gitignore` và thực hiện push toàn bộ mã nguồn Milestone 2 lên GitHub.

@@ -1,6 +1,6 @@
 # SEG301 - SEARCH ENGINES & INFORMATION RETRIEVAL
 
-## Milestone 1: Data Acquisition (20%)
+## Project: Vietnamese Enterprise Search Engine
 
 ## Nhóm thực hiện: OverFitting
 
@@ -14,111 +14,108 @@
 
 ### 📝 1. Tổng quan & Mục tiêu
 
-Dự án tập trung xây dựng một **Vertical Search Engine** (Máy tìm kiếm chuyên biệt) cho chủ đề **Thông tin Doanh nghiệp & Review**.
+Dự án tập trung xây dựng một **Vertical Search Engine** (Máy tìm kiếm chuyên biệt) cho chủ đề **Thông tin Doanh nghiệp & Review**. Dự án kéo dài qua 3 giai đoạn:
 
-- **Mục tiêu chính**: Xây dựng bộ dữ liệu sạch tối thiểu **1.000.000 documents**.
-- **Nguồn dữ liệu**: infodoanhnghiep.com, itviec.com, 1900.com.vn.
-- **Công nghệ**: Python, High-performance Multi-threading, NLP (Word Segmentation).
+- **Milestone 1**: Thu thập, làm sạch và làm giàu bộ dữ liệu doanh nghiệp (> 1.8 triệu dòng).
+- **Milestone 2**: Xây dựng hệ thống lập chỉ mục (SPIMI) và xếp hạng (BM25) hiệu năng cao.
+- **Milestone 3**: (Upcoming) Vector Search, Giao diện Web & Hybrid Search.
 
 ---
 
 ### 📂 2. Cấu trúc thư mục dự án
 
-Hệ thống được tổ chức theo module hóa nghiêm ngặt theo yêu cầu môn học:
+Hệ thống được tổ chức module hóa theo từng giai đoạn:
 
 ```text
 SEG301-OverFitting/
 ├── src/                     # Source code chính
-│   ├── __init__.py
-│   └── crawler/             # Milestone 1: Code thu thập & xử lý
-│       ├── crawl_enterprise.py      # Cào dữ liệu gốc từ InfoDoanhNghiep
-│       ├── crawl_reviews.py         # Cào dữ liệu review từ ITviec & 1900
-│       ├── step1_mapping.py         # Khớp review vào dữ liệu doanh nghiệp
-│       ├── step2_deduplicate.py     # Loại bỏ trùng lặp (Dual-Key)
-│       ├── step3_cleaning.py        # Làm sạch (HTML, Title Case, Fix lỗi font)
-│       ├── step4_segmentation.py    # Tách từ tiếng Việt (Word Segmentation)
-│       ├── run_pipeline.py          # File thực thi toàn bộ luồng xử lý
-│       ├── parser.py                # Logic bóc tách HTML chuyên sâu
-│       └── utils.py                 # Hàm tiện ích chuẩn hóa
+│   ├── crawler/             # Milestone 1: Thu thập & Tiền xử lý
+│   │   ├── crawl_enterprise.py      # Crawler đa luồng hiệu năng cao
+│   │   ├── crawl_reviews.py         # Cào dữ liệu review (ITviec, 1900)
+│   │   ├── run_pipeline.py          # Pipeline nối, sạch và tách từ (M1)
+│   │   └── parser.py                # Logic bóc tách HTML chuyên sâu
+│   ├── indexer/             # Milestone 2: Lập chỉ mục SPIMI
+│   │   ├── spimi.py         # Indexing theo blocks để tối ưu RAM
+│   │   ├── merging.py       # K-way merge các blocks thành Inverted Index
+│   │   └── compression.py   # (Mới) Kỹ thuật nén VByte & Delta
+│   ├── ranking/             # Milestone 2: Xếp hạng BM25
+│   │   └── bm25.py          # Thuật toán BM25 (code tay, tối ưu Random Access)
+│   └── search_console.py    # Console App tìm kiếm tương tác
+├── tests/                   # Unit tests đảm bảo tính đúng đắn thuật toán
 ├── docs/                    # Thư mục báo cáo & tài liệu
-│   └── Milestone1_Report.md # Báo cáo chi tiết Milestone 1
-├── data_sample/             # Dữ liệu mẫu (100 docs)
-│   └── sample.jsonl
-├── requirements.txt         # Các thư viện cần thiết (pip install -r ...)
-├── .gitignore               # Cấu hình bỏ qua rác và dữ liệu lớn
-├── ai_log.md                # Nhật ký sử dụng AI (Bắt buộc)
+│   └── Milestone1_Report.md # Báo cáo chi tiết giai đoạn 1
+├── data/                    # Dữ liệu dự án (bị gitignore)
+│   ├── milestone1_fixed.jsonl
+│   └── index/               # Thư mục chứa Inverted Index files
+├── requirements.txt         # Các thư viện cần thiết
+├── .gitignore               # Cấu hình Git
+├── ai_log.md                # Nhật ký tương tác AI (Bắt buộc)
 └── README.md                # Hướng dẫn này
 ```
 
 ---
 
-### 🛠️ 3. Kỹ thuật triển khai & Điểm nổi bật
+### 🛠️ 3. Chi tiết triển khai & Điểm nổi bật
 
-- **Hiệu năng cao**: Sử dụng `ThreadPoolExecutor` với **50 luồng** song song, tối ưu hóa tốc độ I/O bound.
+#### 🔹 Milestone 1: Data Acquisition & Enrichment
 
-- **Anti-Bot & Security Bypass**: Tích hợp `curl_cffi` để giả lập TLS Fingerprint của trình duyệt Chrome 120, vượt qua các rào cản từ Cloudflare/WAF.
-- **Cơ chế Tự động Phục hồi (Checkpoint)**: Duy trì trạng thái cào theo thời gian thực, cho phép tiếp tục công việc ngay lập tức sau sự cố.
-- **Quy trình Tiền xử lý Dữ liệu**:
-  - **Làm sạch (Cleaning)**: Chuẩn hóa Case, loại bỏ mã HTML dư thừa và fix lỗi giải mã Unicode.
-  - **Khử trùng lặp (Deduplication)**: Áp dụng cơ chế lọc trùng dựa trên Mã số thuế và định danh thực thể.
-  - **Liên kết (Mapping)**: Khớp nối đánh giá (Reviews) từ nhiều nguồn vào đúng pháp nhân doanh nghiệp.
-  - **Tách từ (Segmentation)**: Tối ưu hóa dữ liệu tiếng Việt bằng thư viện `PyVi`.
+- **Hiệu năng cao**: ThreadPool 50 luồng, xử lý ~1000 cty/phút.
+- **Security Bypass**: Giả lập TLS Fingerprint (Chrome 120) vượt rào cản Cloudflare/WAF.
+- **Làm sạch chuyên sâu**: Title Case cho tên/địa chỉ, tách từ dính, chuẩn hóa Unicode.
+- **Tách từ (Segmentation)**: Sử dụng `PyVi` để tối ưu dữ liệu tiếng Việt.
+- **Thống kê M1**:
+  - **1.842.525 documents** sạch.
+  - ~6.2 GB dữ liệu JSONL.
+  - [Link tải full dataset (M1)](https://drive.google.com/drive/folders/1XdAX7aw-ibpCniuHVyMNmUkD9JHv-dK-?usp=sharing)
+
+#### 🔹 Milestone 2: Core Search Engine (SPIMI + BM25)
+
+- **Thuật toán SPIMI**: Xây dựng Inverted Index theo từng block 50k docs, tránh tràn RAM.
+- **Xếp hạng BM25**: Triển khai thủ công 100% công thức BM25 (IDF, TF Saturation, Length Normalization).
+- **Kiến trúc Index 2-File**:
+  - `term_dict.pkl` (~18MB): Load cực nhanh vào RAM.
+  - `postings.bin` (~1GB): Đọc danh sách postings qua cơ chế **File Seek (O(1))**.
+- **Siêu tối ưu RAM**: Sử dụng Byte Offsets để đọc Metadata thông tin công ty từ JSONL gốc khi cần hiển thị.
+- **Hiệu năng M2**:
+  - **RAM tiêu thụ**: ~55 MB (giảm từ 3GB+).
+  - **Khởi động**: < 1.0 giây.
+  - **Tìm kiếm**: < 0.1 giây / truy vấn.
 
 ---
 
-### 📊 4. Thống kê bộ dữ liệu
-
-- **Tổng số lượng**: **1.842.525 documents**.
-
-- **Dung lượng**: ~6.2 GB (Dữ liệu sạch, đã tách từ).
-- **Định dạng**: JSON Lines (.jsonl).
-- **Link tải full dataset**: [Google Drive Link](https://drive.google.com/drive/folders/1XdAX7aw-ibpCniuHVyMNmUkD9JHv-dK-?usp=sharing)
-
----
-
-### 💻 5. Hướng dẫn cài đặt & Chạy dự án
+### 💻 4. Hướng dẫn chạy dự án
 
 #### Bước 1: Khởi tạo môi trường
 
 ```bash
-# Clone repository
-git clone https://github.com/SEG301/OverFitting.git
-cd SEG301-OverFitting
-
-# Tạo và kích hoạt môi trường ảo
 python -m venv venv
-# Windows:
-venv\Scripts\activate
-# Linux/Mac:
-source venv/bin/activate
-
-# Cài đặt thư viện
+source venv/bin/activate  # Hoặc venv\Scripts\activate trên Windows
 pip install -r requirements.txt
 ```
 
-#### Bước 2: Chạy crawler (Nếu cần thu thêm dữ liệu)
-
-```bash
-python src/crawler/crawl_enterprise.py
-python src/crawler/crawl_reviews.py
-```
-
-#### Bước 3: Chạy Pipeline xử lý dữ liệu sạch
-
-File này sẽ tự động chạy từ Step 1 đến Step 4:
+#### Bước 2: Milestone 1 - Thu thập & Xử lý (Nếu cần)
 
 ```bash
 python src/crawler/run_pipeline.py
 ```
 
+#### Bước 3: Milestone 2 - Lập chỉ mục & Tìm kiếm
+
+```bash
+# Xây dựng Inverted Index
+python src/indexer/spimi.py
+python src/indexer/merging.py
+
+# Chạy Console Search
+python src/search_console.py
+```
+
 ---
 
-### 🛡️ 6. Zero Tolerance Policy & AI Log
+### 🛡️ 5. Zero Tolerance Policy & AI Log
 
-Tuân thủ tuyệt đối quy định của môn học:
-
-- **GitHub**: Lịch sử commit đều đặn, rõ ràng từng tính năng.
-- **AI Log**: Toàn bộ quá trình trao đổi với AI được ghi lại tại `ai_log.md`.
+- **GitHub**: Commit lịch sử minh bạch cho mọi thay đổi.
+- **AI Log**: Mọi quá trình hỗ trợ từ AI được ghi nhận tại `ai_log.md`, bao gồm cả các giai đoạn debug thuật toán và tối ưu memory.
 
 ---
 Nhóm OverFitting - 2026
