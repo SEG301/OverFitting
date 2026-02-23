@@ -360,8 +360,9 @@ def display_results(results: List[Tuple[int, float, dict]], query: str):
         print(f"  ├─ Rep:      {meta.get('representative', 'N/A')}")
         print(f"  ├─ Status:   {meta.get('status', 'N/A')}")
         industries = meta.get('industries_str_seg', 'N/A')
-        if industries and len(industries) > 150:
-            industries = industries[:150] + "..."
+        # Hiển thị đầy đủ và thay thế dấu gạch dưới bằng khoảng trắng cho dễ đọc
+        if industries:
+            industries = industries.replace("_", " ")
         print(f"  └─ Industry: {industries}")
     
     print("\n" + "=" * 80)

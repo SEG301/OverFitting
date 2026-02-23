@@ -511,3 +511,11 @@
 - **Xóa:** `doc_metadata.pkl` (1.8GB), `final_index.pkl` (1.1GB) và thư mục tạm `blocks/`.
 - **Giữ lại:** Bộ index 2-file tối ưu (`term_dict.pkl`, `postings.bin`) và các file cần thiết (`doc_lengths.pkl`, `doc_offsets.pkl`).
 - **Git:** Kiểm tra lại `.gitignore` và thực hiện push toàn bộ mã nguồn Milestone 2 lên GitHub.
+
+**Task:** Fix lỗi hiển thị ngành nghề bị đứt đoạn.
+
+**User:** Sao output ở phần industry không liệt kê hết mà bị đứt thông tin vậy?
+**AI:** Đã điều chỉnh hàm `display_results` trong `bm25.py`.
+
+- **Sửa lỗi:** Loại bỏ giới hạn 150 ký tự để hiển thị đầy đủ danh sách ngành nghề của doanh nghiệp.
+- **Tối ưu hiển thị:** Tự động chuyển đổi dấu gạch dưới `_` thành khoảng trắng trong kết quả hiển thị để người dùng đọc thuận tiện hơn, trong khi vẫn giữ nguyên logic xử lý ở backend.
