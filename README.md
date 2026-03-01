@@ -36,14 +36,16 @@ SEG301-OverFitting/
 │   │   └── parser.py                # Logic bóc tách HTML chuyên sâu
 │   ├── indexer/             # Milestone 2: Lập chỉ mục SPIMI
 │   │   ├── spimi.py         # Indexing theo blocks để tối ưu RAM
-│   │   ├── merging.py       # K-way merge các blocks thành Inverted Index
-│   │   └── compression.py   # (Mới) Kỹ thuật nén VByte & Delta
+│   │   └── merging.py       # K-way merge các blocks thành Inverted Index
 │   ├── ranking/             # Milestone 2: Xếp hạng BM25
-│   │   └── bm25.py          # Thuật toán BM25 (code tay, tối ưu Random Access)
+│   │   └── bm25.py          # BM25 + Coordination Boost (mã nguồn cốt lõi)
 │   └── search_console.py    # Console App tìm kiếm tương tác
+├── support/                 # Công cụ kiểm chứng & Thống kê
+│   └── index_stats_verifier.py # Script kiểm tra Index Statistics thực tế
 ├── tests/                   # Unit tests đảm bảo tính đúng đắn thuật toán
 ├── docs/                    # Thư mục báo cáo & tài liệu
-│   └── Milestone1_Report.md # Báo cáo chi tiết giai đoạn 1
+│   ├── Milestone1_Report.md # Báo cáo chi tiết giai đoạn 1
+│   └── Milestone2_Report.md # Báo cáo chi tiết giai đoạn 2 (Mới)
 ├── data/                    # Dữ liệu dự án (bị gitignore)
 │   ├── milestone1_fixed.jsonl
 │   └── index/               # Thư mục chứa Inverted Index files
@@ -65,21 +67,24 @@ SEG301-OverFitting/
 - **Tách từ (Segmentation)**: Sử dụng `PyVi` để tối ưu dữ liệu tiếng Việt.
 - **Thống kê M1**:
   - **1.842.525 documents** sạch.
-  - ~6.2 GB dữ liệu JSONL.
   - [Link tải full dataset (M1)](https://drive.google.com/drive/folders/1XdAX7aw-ibpCniuHVyMNmUkD9JHv-dK-?usp=sharing)
 
 #### 🔹 Milestone 2: Core Search Engine (SPIMI + BM25)
 
 - **Thuật toán SPIMI**: Xây dựng Inverted Index theo từng block 50k docs, tránh tràn RAM.
-- **Xếp hạng BM25**: Triển khai thủ công 100% công thức BM25 (IDF, TF Saturation, Length Normalization).
+- **BM25 & Coordination Boost**:
+  - Triển khai thủ công 100% công thức BM25.
+  - **Coordination Factor**: Tăng điểm cho kết quả khớp đồng thời nhiều từ khóa (tăng Precision).
 - **Kiến trúc Index 2-File**:
-  - `term_dict.pkl` (~18MB): Load cực nhanh vào RAM.
-  - `postings.bin` (~1GB): Đọc danh sách postings qua cơ chế **File Seek (O(1))**.
-- **Siêu tối ưu RAM**: Sử dụng Byte Offsets để đọc Metadata thông tin công ty từ JSONL gốc khi cần hiển thị.
-- **Hiệu năng M2**:
-  - **RAM tiêu thụ**: ~55 MB (giảm từ 3GB+).
-  - **Khởi động**: < 1.0 giây.
-  - **Tìm kiếm**: < 0.1 giây / truy vấn.
+  - `term_dict.pkl` (~18MB): Lưu 695k từ vựng duy nhất.
+  - `postings.bin` (~1GB): Đọc postings qua cơ chế **File Seek (O(1))**.
+- **Siêu tối ưu RAM & Hiển thị**:
+  - **Metadata On-demand**: Chỉ đọc thông tin công ty từ JSONL khi cần hiển thị (RAM < 60MB).
+  - **Metadata Fallback**: Tự động khôi phục thông tin Industry bị thiếu từ nhiều nguồn dữ liệu thô.
+- **Thống kê M2 thực tế**:
+  - **Vocabulary**: 695,470 terms.
+  - **Total Tokens**: 342,502,541.
+  - **Search Time**: < 0.5 giây (đã tối ưu Hot-loop).
 
 ---
 
@@ -93,19 +98,20 @@ source venv/bin/activate  # Hoặc venv\Scripts\activate trên Windows
 pip install -r requirements.txt
 ```
 
-#### Bước 2: Milestone 1 - Thu thập & Xử lý (Nếu cần)
+#### Bước 2: Milestone 2 - Lập chỉ mục & Kiểm chứng
 
 ```bash
-python src/crawler/run_pipeline.py
-```
-
-#### Bước 3: Milestone 2 - Lập chỉ mục & Tìm kiếm
-
-```bash
-# Xây dựng Inverted Index
+# 1. Xây dựng Inverted Index (SPIMI)
 python src/indexer/spimi.py
 python src/indexer/merging.py
 
+# 2. Kiểm chứng số liệu thống kê thực tế
+python support/index_stats_verifier.py
+```
+
+#### Bước 3: Tìm kiếm tương tác
+
+```bash
 # Chạy Console Search
 python src/search_console.py
 ```
@@ -114,8 +120,8 @@ python src/search_console.py
 
 ### 🛡️ 5. Zero Tolerance Policy & AI Log
 
-- **GitHub**: Commit lịch sử minh bạch cho mọi thay đổi.
-- **AI Log**: Mọi quá trình hỗ trợ từ AI được ghi nhận tại `ai_log.md`, bao gồm cả các giai đoạn debug thuật toán và tối ưu memory.
+- **GitHub History**: Commit rõ ràng, chia nhỏ module thay vì upload 1 lần.
+- **AI Interaction Log**: Chi tiết tại `ai_log.md` (bao gồm lịch sử tối ưu thuật toán & debug RAM).
 
 ---
 Nhóm OverFitting - 2026
