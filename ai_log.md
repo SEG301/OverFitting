@@ -546,3 +546,33 @@
 **AI:** Đã thực hiện **Hot-loop Optimization**: Inline hàm tính điểm TF và pre-calculate các hằng số BM25 ra ngoài vòng lặp. Tốc độ tìm kiếm "xây dựng Hà Nội" vẫn duy trì ở mức cực nhanh dù khối lượng dữ liệu xử lý tăng gấp nhiều lần.
 
 **Result:** Kết quả tìm kiếm hiện tại cực kỳ chính xác và đầy đủ thông tin.
+
+---
+
+### Date: 2026-03-01 (Session: Milestone 2 Finalization & Reporting)
+
+**Task:** Hoàn thiện báo cáo kỹ thuật và kiểm chứng số liệu cuối cùng cho Milestone 2.
+
+**User:** Tạo báo cáo Milestone 2 chi tiết và làm sạch mã nguồn (xóa các module không cần thiết).
+
+**AI:** Đã thực hiện các bước sau:
+
+1. **Cleanup & Removal:**
+    - Xóa module `src/indexer/compression.py` (do không được sử dụng trong luồng xử lý chính).
+
+2. **Báo cáo Kỹ thuật (Milestone2_Report.md):**
+    - Lồng ghép mô tả chi tiết từng file mã nguồn (`spimi.py`, `merging.py`, `bm25.py`) vào quy trình Indexing/Ranking.
+    - Phân tích sự chênh lệch số lượng Vocabulary (18k vs 695k) do cơ chế **sampling 1%** ở M1 so với **full-indexing 100%** ở M2.
+
+3. **Kiểm chứng số liệu (index_stats_verifier.py):**
+    - Tổng số văn bản: **1,842,525**.
+    - Vocabulary Size: **695,470**.
+    - Tổng số Tokens: **342,502,541**.
+    - Độ dài trung bình (Avgdl): **185.89**.
+
+4. **Display & Bug Fixing:**
+    - **Sửa địa chỉ:** Tự động loại bỏ dấu phẩy dư thừa ở đầu chuỗi địa chỉ (`strip(", ")`).
+    - **Sửa Người đại diện:** Thêm fallback hiển thị "(Chưa cập nhật)" khi dữ liệu là None.
+    - **Nhận diện lỗi Tax Code:** Phát hiện lỗi Regex ở Crawler khiến mã số thuế bị mất hậu tố `-xxx`.
+
+**Result:** Đã đẩy toàn bộ mã nguồn sạch và báo cáo hoàn chỉnh lên GitHub nhánh `main`. Dự án đã sẵn sàng cho buổi bảo vệ Milestone 2.

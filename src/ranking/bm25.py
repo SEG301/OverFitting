@@ -189,11 +189,20 @@ class BM25Searcher:
                 if isinstance(details, list):
                     industry = ", ".join([d.get("name", "") for d in details if d.get("name")])
             
+            # Làm sạch địa chỉ (xóa dấu phẩy và khoảng trắng thừa ở đầu/cuối)
+            raw_address = doc.get("address", "")
+            clean_address = raw_address.strip(", ")
+            
+            # Representative fallback
+            rep = doc.get("representative", "")
+            if not rep or rep.lower() == "none":
+                rep = "Chưa cập nhật"
+            
             return {
                 "company_name": doc.get("company_name", ""),
                 "tax_code": doc.get("tax_code", ""),
-                "address": doc.get("address", ""),
-                "representative": doc.get("representative", ""),
+                "address": clean_address,
+                "representative": rep,
                 "status": doc.get("status", ""),
                 "industries_str_seg": industry or "",
             }
