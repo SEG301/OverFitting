@@ -179,13 +179,23 @@ class BM25Searcher:
             raw_line = self.jsonl_file.readline()
             line = raw_line.decode("utf-8", errors="ignore")
             doc = json.loads(line)
+            
+            # Ưu tiên lấy industries_str_seg, nếu không có thì lấy industries_str
+            industry = doc.get("industries_str_seg") or doc.get("industries_str")
+            
+            # Nếu vẫn không có, thử lấy từ industries_detail (nếu là list)
+            if not industry and "industries_detail" in doc:
+                details = doc["industries_detail"]
+                if isinstance(details, list):
+                    industry = ", ".join([d.get("name", "") for d in details if d.get("name")])
+            
             return {
                 "company_name": doc.get("company_name", ""),
                 "tax_code": doc.get("tax_code", ""),
                 "address": doc.get("address", ""),
                 "representative": doc.get("representative", ""),
                 "status": doc.get("status", ""),
-                "industries_str_seg": doc.get("industries_str_seg", ""),
+                "industries_str_seg": industry or "",
             }
         except Exception:
             return {}
@@ -239,12 +249,21 @@ class BM25Searcher:
         if not query_tokens:
             return []
         
-        # Ngưỡng df tối đa: term xuất hiện >30% docs sẽ bị bỏ qua
-        max_df = int(self.total_docs * 0.3)
+        # Ngưỡng df tối đa: term xuất hiện > 80% corpus mới bị bỏ qua (thay vì 30%)
+        # Vì các từ như "xây dựng" rất quan trọng nhưng lại phổ biến trong dữ liệu doanh nghiệp.
+        max_df = int(self.total_docs * 0.8)
         
-        # Accumulate BM25 scores
+        # Precompute constants for the hot loop
         doc_scores = defaultdict(float)
         skipped_terms = []
+        k1 = self.k1
+        b = self.b
+        avgdl = self.avg_doc_length
+        k1_plus_1 = k1 + 1
+        
+        # Coordination Factor: Đếm xem mỗi doc_id chứa bao nhiêu query terms khác nhau
+        # để ưu tiên các kết quả khớp NHIỀU từ khoá hơn (tránh việc chỉ khớp 1 từ rồi trồi lên đầu).
+        doc_term_matches = defaultdict(int)
         
         for term in query_tokens:
             if term not in self.term_dict:
@@ -252,8 +271,8 @@ class BM25Searcher:
             
             df = self.term_dict[term][0]
             
-            # Skip terms quá phổ biến (postings list quá lớn)
-            if df > max_df:
+            # Skip terms quá phổ biến (df > 80%)
+            if df > max_df and len(query_tokens) > 2:
                 skipped_terms.append(f"{term}(df={df:,d})")
                 continue
             
@@ -265,10 +284,24 @@ class BM25Searcher:
             if postings is None:
                 continue
             
+            # Hot loop - Optimized: Inlined compute_tf_component
             for doc_id, tf in postings:
-                doc_length = self.doc_lengths.get(doc_id, self.avg_doc_length)
-                tf_comp = self.compute_tf_component(tf, doc_length)
+                doc_length = self.doc_lengths.get(doc_id, avgdl)
+                # BM25 TF component
+                length_norm = 1 - b + b * (doc_length / avgdl)
+                tf_comp = (tf * k1_plus_1) / (tf + k1 * length_norm)
+                
                 doc_scores[doc_id] += idf * tf_comp
+                doc_term_matches[doc_id] += 1
+        
+        # Áp dụng Coordination Boost
+        # Score = Score * (Số từ khớp / Tổng số từ query)
+        num_query_tokens = len(query_tokens)
+        for doc_id in doc_scores:
+            n_matched = doc_term_matches[doc_id]
+            coordination_factor = n_matched / num_query_tokens
+            # Boost mạnh cho các kết quả khớp nhiều từ (mũ 2 để tạo sự cách biệt lớn)
+            doc_scores[doc_id] *= (coordination_factor ** 2)
         
         # Top-k
         sorted_docs = sorted(doc_scores.items(), key=lambda x: x[1], reverse=True)

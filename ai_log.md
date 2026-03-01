@@ -519,3 +519,30 @@
 
 - **Sửa lỗi:** Loại bỏ giới hạn 150 ký tự để hiển thị đầy đủ danh sách ngành nghề của doanh nghiệp.
 - **Tối ưu hiển thị:** Tự động chuyển đổi dấu gạch dưới `_` thành khoảng trắng trong kết quả hiển thị để người dùng đọc thuận tiện hơn, trong khi vẫn giữ nguyên logic xử lý ở backend.
+
+---
+
+### Date: 2026-03-01 (Session: Algorithm & Display Optimization)
+
+**Task:** Tối ưu hóa độ chính xác xếp hạng và xử lý lỗi hiển thị ngành nghề.
+
+**User:** Khi tìm kiếm "xây dựng Hà Nội", hệ thống tự động bỏ qua từ "xây_dựng" vì nó quá phổ biến, dẫn đến kết quả trả về toàn các ngành nghề không liên quan. Một số kết quả lại bị trống phần Industry.
+
+**AI:** Đã thực hiện 3 cải tiến quan trọng:
+
+1. **Tối ưu Keyword Skip Logic:**
+    - Tăng ngưỡng `max_df` từ **30% lên 80%**. Các từ khóa ngành nghề trọng yếu như "xây dựng" sẽ không bị loại bỏ.
+    - Thêm điều kiện: Không bao giờ skip từ khóa nếu truy vấn của người dùng chỉ có **1-2 từ**, đảm bảo ý định tìm kiếm luôn được tôn trọng tuyệt đối.
+
+2. **Triển khai Coordination Boost (Hệ số phối hợp):**
+    - BM25 mặc định dùng toán tử OR, dễ gây hiện tượng "lạc đề". Tôi đã bổ sung hệ số: `Score = Score * (Số từ khớp / Tổng số từ query)^2`.
+    - **Kết quả:** Những doanh nghiệp chứa đồng thời cả "xây dựng" và "Hà Nội" sẽ có điểm cao vọt lên đầu, loại bỏ các kết quả chỉ chứa một từ đơn lẻ.
+
+3. **Metadata Fallback (Sửa lỗi trống ngành nghề):**
+    - Cập nhật hàm `_get_doc_metadata` để kiểm tra đa tầng các trường dữ liệu: `industries_str_seg` -> `industries_str` -> `industries_detail`.
+    - Đảm bảo hiển thị đầy đủ thông tin kể cả khi cấu trúc JSON thô không đồng nhất.
+
+**User:** Hãy tối ưu tốc độ vì khi bao gồm cả từ khóa "xây dựng" (762k docs), search bị chậm lại.
+**AI:** Đã thực hiện **Hot-loop Optimization**: Inline hàm tính điểm TF và pre-calculate các hằng số BM25 ra ngoài vòng lặp. Tốc độ tìm kiếm "xây dựng Hà Nội" vẫn duy trì ở mức cực nhanh dù khối lượng dữ liệu xử lý tăng gấp nhiều lần.
+
+**Result:** Kết quả tìm kiếm hiện tại cực kỳ chính xác và đầy đủ thông tin.
