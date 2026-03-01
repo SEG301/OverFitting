@@ -100,4 +100,22 @@ Hệ thống sử dụng công thức BM25 thuần túy (Code tay 100%, không d
 3. **Ví dụ tìm kiếm**: `xây dựng Hà Nội`, `công nghệ thông tin`, `vận tải Hồ Chí Minh`.
 
 ---
+
+## 8. Cấu trúc Thư mục & Giải thích Tệp tin
+
+### 8.1. Thư mục `src/` (Mã nguồn hệ thống)
+
+* **`search_console.py`**: Điểm điều khiển chính của ứng dụng. Cung cấp giao diện dòng lệnh (CLI) để người dùng nhập truy vấn và xem kết quả trực quan.
+* **`indexer/spimi.py`**: Thực hiện giai đoạn Indexing đầu tiên. Đọc dữ liệu JSON thô, tách từ, và tạo ra các chỉ mục con (blocks) để tránh quá tải RAM.
+* **`indexer/merging.py`**: Thực hiện quá trình K-way merge, trộn các chỉ mục con thành bộ chỉ mục cuối cùng theo cấu trúc 2-file tối ưu.
+* **`ranking/bm25.py`**: Chứa logic chính của thuật toán BM25, Coordination Boost và cơ chế đọc Metadata on-demand để tối ưu RAM.
+
+### 8.2. Thư mục `data/index/` (Dữ liệu chỉ mục)
+
+* **`term_dict.pkl`**: Từ điển từ vựng (Vocabulary). Lưu mapping giữa từ khóa và vị trí lưu trữ của nó trong file danh sách postings.
+* **`postings.bin`**: File chứa danh sách các văn bản (postings lists) dưới dạng nhị phân, được thiết kế để truy xuất ngẫu nhiên cực nhanh.
+* **`doc_lengths.pkl`**: Danh sách độ dài của 1.8 triệu văn bản, phục vụ cho việc tính toán trọng số chuẩn hóa trong BM25.
+* **`doc_offsets.pkl`**: Bản đồ vị trí byte của từng công ty trong file dữ liệu gốc, giúp hiển thị thông tin ngay lập tức mà không cần load metadata vào RAM.
+
+---
 *Báo cáo Milestone 2 - Nhóm OverFitting - SEG301.*
