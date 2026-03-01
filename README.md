@@ -40,8 +40,6 @@ SEG301-OverFitting/
 │   ├── ranking/             # Milestone 2: Xếp hạng BM25
 │   │   └── bm25.py          # BM25 + Coordination Boost (mã nguồn cốt lõi)
 │   └── search_console.py    # Console App tìm kiếm tương tác
-├── support/                 # Công cụ kiểm chứng & Thống kê
-│   └── index_stats_verifier.py # Script kiểm tra Index Statistics thực tế
 ├── tests/                   # Unit tests đảm bảo tính đúng đắn thuật toán
 ├── docs/                    # Thư mục báo cáo & tài liệu
 │   ├── Milestone1_Report.md # Báo cáo chi tiết giai đoạn 1
@@ -98,15 +96,12 @@ source venv/bin/activate  # Hoặc venv\Scripts\activate trên Windows
 pip install -r requirements.txt
 ```
 
-#### Bước 2: Milestone 2 - Lập chỉ mục & Kiểm chứng
+#### Bước 2: Milestone 2 - Lập chỉ mục & Tìm kiếm
 
 ```bash
-# 1. Xây dựng Inverted Index (SPIMI)
+# Xây dựng Inverted Index (SPIMI)
 python src/indexer/spimi.py
 python src/indexer/merging.py
-
-# 2. Kiểm chứng số liệu thống kê thực tế
-python support/index_stats_verifier.py
 ```
 
 #### Bước 3: Tìm kiếm tương tác
