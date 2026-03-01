@@ -26,43 +26,47 @@ Xây dựng hệ thống tìm kiếm toàn văn (Full-text Search) mạnh mẽ, 
 
 ## 3. Kiến trúc Đánh chỉ mục (Indexing)
 
-### 3.1. Thuật toán SPIMI
+Hệ thống sử dụng bộ mã nguồn nằm trong thư mục `src/indexer/` để chuyển đổi dữ liệu thô thành cấu trúc tìm kiếm.
+
+### 3.1. Thuật toán SPIMI (`spimi.py` & `merging.py`)
 
 Nhóm triển khai thuật toán SPIMI để giải quyết bài toán tràn bộ nhớ khi xử lý 1.8 triệu bản ghi:
 
-* **Block-based processing**: Dữ liệu được chia thành từng khối (50,000 docs/block). Mỗi khối được đánh chỉ mục trong RAM và ghi xuống đĩa dưới dạng file Pickle tạm thời.
-* **K-way Merge**: Sử dụng cấu trúc `heapq` (Min-heap) để gộp các block file đã sắp xếp theo thứ tự alphabet thành một Inverted Index hoàn chỉnh duy nhất.
+* **Giai đoạn 1 (`spimi.py`)**: Đọc dữ liệu JSONL, chia thành từng khối 50,000 tài liệu. Mỗi khối được đánh chỉ mục trong RAM và ghi xuống đĩa dưới dạng các file blocks tạm thời.
+* **Giai đoạn 2 (`merging.py`)**: Sử dụng cấu trúc Min-heap (`heapq`) để gộp (merge) các block con thành một Inverted Index duy nhất, sắp xếp theo thứ tự alphabet để tối ưu tốc độ truy vấn.
 
 ### 3.2. Cấu trúc Index 2-File (Memory-Efficient Architecture)
 
-Để đạt tốc độ search nhanh mà không tốn RAM, nhóm thiết kế hệ thống lưu trữ tách biệt:
+Để đạt tốc độ search nhanh mà không tốn RAM, bộ chỉ mục trong `data/index/` được thiết kế tách biệt:
 
-1. **`term_dict.pkl` (~18 MB)**: Lưu mapping từ khóa sang vị trí byte (offset) và độ dài trong file postings. Chỉ file này được load vào RAM khi khởi động.
-2. **`postings.bin` (~1.04 GB)**: Lưu danh sách postings (doc_id, term_freq) dưới dạng nhị phân. Dữ liệu được đọc trực tiếp từ đĩa thông qua `f.seek()`, giúp RAM tiêu thụ cực thấp (~55 MB).
+1. **`term_dict.pkl` (~18 MB)**: Từ điển (Vocabulary) lưu mapping từ khóa sang vị trí byte (offset) và độ dài trong file postings. Chỉ file này được load vào RAM khi khởi động.
+2. **`postings.bin` (~1.04 GB)**: Lưu danh sách postings (doc_id, tf) dưới dạng nhị phân. Dữ liệu được đọc trực tiếp từ đĩa thông qua `f.seek()`, giúp RAM tiêu thụ cực thấp (~55 MB).
 
 ---
 
 ## 4. Thuật toán Xếp hạng (Ranking)
 
-### 4.1. Cốt lõi BM25
+Toàn bộ logic xếp hạng được đóng gói trong tệp **`src/ranking/bm25.py`**.
 
-Hệ thống sử dụng công thức BM25 thuần túy (Code tay 100%, không dùng thư viện IR):
+### 4.1. Cốt lõi BM25 thuần túy
 
-* **TF Saturation**: Điều chỉnh sự bão hòa của tần suất từ (k1 = 1.2).
-* **Length Normalization**: Điều chỉnh trọng số theo độ dài văn bản (b = 0.75).
-* **IDF (Inverse Document Frequency)**: Tính toán mức độ quan trọng của từ dựa trên quy mô toàn bộ 1.8 triệu docs.
+Hệ thống sử dụng công thức BM25 tính toán dựa trên các tham số:
+
+* **`doc_lengths.pkl`**: Lưu độ dài (số từ) của 1.8 triệu văn bản để chuẩn hóa trọng số (b = 0.75).
+* **TF Saturation**: k1 = 1.2 giúp kiểm soát mức độ ảnh hưởng của tần suất từ.
+* **IDF (Inverse Document Frequency)**: Tính toán mức độ quan trọng của từ trên quy mô toàn corpus.
 
 ### 4.2. Cải tiến Coordination Boost
 
-Để khắc phục nhược điểm của toán tử OR trong BM25, nhóm triển khai hệ số phối hợp:
+Khắc phục nhược điểm của toán tử OR mặc định trong BM25:
 
 * **Công thức**: `FinalScore = BM25Score * (nMatched / nQuery)^2`
-* **Ý nghĩa**: Ưu tiên cực mạnh cho các văn bản chứa đầy đủ các từ khóa trong truy vấn (ví dụ: tìm "xây dựng Hà Nội" sẽ loại bỏ các doanh nghiệp chỉ chứa "Hà Nội" nhưng thuộc ngành khác).
+* **Ý nghĩa**: Ưu tiên cực mạnh cho các văn bản chứa đầy đủ các từ khóa trong truy vấn.
 
-### 4.3. Metadata Fallback & Display
+### 4.3. Metadata On-demand & Display
 
-* **Metadata On-demand**: Lưu `doc_offsets.pkl` để tìm thông tin công ty trực tiếp từ file JSONL gốc khi hiển thị, không lưu metadata vào Index.
-* **Fallback Logic**: Tự động tìm kiếm ngành nghề từ nhiều trường dữ liệu khác nhau (`industries_str_seg`, `str`, `detail`) để đảm bảo không bị trống thông tin Industry.
+* **`doc_offsets.pkl`**: Lưu vị trí byte của từng dòng trong file nguồn. Khi cần hiển thị, hệ thống truy xuất trực tiếp từ file JSONL, giúp RAM tiêu thụ cực thấp.
+* **Fallback Logic**: Tự động tìm kiếm ngành nghề từ nhiều trường dữ liệu (`industries_str_seg`, `str`, `detail`) để tránh trống thông tin Industry.
 
 ---
 
@@ -101,21 +105,12 @@ Hệ thống sử dụng công thức BM25 thuần túy (Code tay 100%, không d
 
 ---
 
-## 8. Cấu trúc Thư mục & Giải thích Tệp tin
+## 8. Giải trình về Quy mô Từ vựng (Vocabulary Size)
 
-### 8.1. Thư mục `src/` (Mã nguồn hệ thống)
+Có sự chênh lệch lớn về số lượng Vocab giữa Milestone 1 (~18k) và Milestone 2 (~695k) do:
 
-* **`search_console.py`**: Điểm điều khiển chính của ứng dụng. Cung cấp giao diện dòng lệnh (CLI) để người dùng nhập truy vấn và xem kết quả trực quan.
-* **`indexer/spimi.py`**: Thực hiện giai đoạn Indexing đầu tiên. Đọc dữ liệu JSON thô, tách từ, và tạo ra các chỉ mục con (blocks) để tránh quá tải RAM.
-* **`indexer/merging.py`**: Thực hiện quá trình K-way merge, trộn các chỉ mục con thành bộ chỉ mục cuối cùng theo cấu trúc 2-file tối ưu.
-* **`ranking/bm25.py`**: Chứa logic chính của thuật toán BM25, Coordination Boost và cơ chế đọc Metadata on-demand để tối ưu RAM.
-
-### 8.2. Thư mục `data/index/` (Dữ liệu chỉ mục)
-
-* **`term_dict.pkl`**: Từ điển từ vựng (Vocabulary). Lưu mapping giữa từ khóa và vị trí lưu trữ của nó trong file danh sách postings.
-* **`postings.bin`**: File chứa danh sách các văn bản (postings lists) dưới dạng nhị phân, được thiết kế để truy xuất ngẫu nhiên cực nhanh.
-* **`doc_lengths.pkl`**: Danh sách độ dài của 1.8 triệu văn bản, phục vụ cho việc tính toán trọng số chuẩn hóa trong BM25.
-* **`doc_offsets.pkl`**: Bản đồ vị trí byte của từng công ty trong file dữ liệu gốc, giúp hiển thị thông tin ngay lập tức mà không cần load metadata vào RAM.
+* **Phạm vi thống kê**: Ở M1, con số 18k chỉ ước tính dựa trên ngôn ngữ tự nhiên (Reviews).
+* **Thực tế Indexing (M2)**: Hệ thống đánh chỉ mục cho toàn bộ trường dữ liệu của 1.8 triệu doanh nghiệp. Vocabulary hiện tại bao gồm mọi **Token duy nhất** (tên riêng, mã ngành, số nhà, ngách, ngõ, tên phố...) trên khắp Việt Nam. Đây là điều kiện bắt buộc để đảm bảo khả năng tìm kiếm chính xác (Precision) cho các thực thể doanh nghiệp.
 
 ---
 *Báo cáo Milestone 2 - Nhóm OverFitting - SEG301.*
