@@ -1,110 +1,90 @@
-# BÁO CÁO KỸ THUẬT MILESTONE 2: INDEXING & RANKING SYSTEM
+# BÁO CÁO TỔNG KẾT MILESTONE 2: HỆ THỐNG TÌM KIẾM THÔNG TIN DOANH NGHIỆP THÔNG MINH
 
-**Môn học**: Search Engines & Information Retrieval (SEG301)  
-**Nhóm thực hiện**: OverFitting  
-**Chủ đề**: Vertical Search Engine cho Thông tin Doanh nghiệp & Reviews  
-**Dữ liệu**: 1.842.525 Documents (Big Data)
-
----
-
-## 1. Thành viên nhóm
-
-| Họ và Tên | MSSV | Vai trò chính |
-| :--- | :--- | :--- |
-| **Nguyễn Thanh Trà** | QE190099 | Crawler Engine & Data Processing |
-| **Phan Đỗ Thanh Tuấn** | QE190123 | Indexing (SPIMI) & Memory Optimization |
-| **Châu Thái Nhật Minh** | QE190109 | Ranking (BM25) & Search Console UI |
+**Học phần**: Search Engines & Information Retrieval (SEG301)  
+**Nhóm**: OverFitting  
+**Thành viên**: Nguyễn Thanh Trà, Phan Đỗ Thanh Tuấn, Châu Thái Nhật Minh
 
 ---
 
-## 2. Tổng quan hệ thống (System Overview)
+## 1. Mục tiêu và Tầm nhìn Dự án
 
-Trong Milestone 2, nhóm OverFitting đã triển khai thành công bộ máy tìm kiếm toàn văn (Full-text Search engine) tự phát triển từ con số 0, tuân thủ nghiêm ngặt yêu cầu "Hardcore" (không dùng thư viện Indexing/Ranking có sẵn).
+Trong giai đoạn Milestone 2, mục tiêu cao nhất của nhóm OverFitting là xây dựng một nền tảng tìm kiếm mạnh mẽ, có khả năng xử lý lượng dữ liệu lớn. Nhóm mong muốn tạo ra một công cụ mà người dùng có thể tìm thấy thông tin của bất kỳ doanh nghiệp nào tại Việt Nam chỉ trong 1s, với độ chính xác và tin cậy cao nhất.
 
-```mermaid
-graph TD
-    A[Raw JSONL Data 1.8M docs] --> B[SPIMI Indexer]
-    B --> C[Internal Block Indexes]
-    C --> D[K-way Merge Sort]
-    D --> E[(Final Inverted Index)]
-    E --> F[BM25 Searcher]
-    F --> G[Coordination Boost]
-    G --> H[Search Console UI]
-```
+Nguyên tắc xây dựng: Tự xây dựng mọi thành phần cốt lõi của bộ máy tìm kiếm để hiểu rõ bản chất vấn đề, thay vì phụ thuộc vào các thư viện có sẵn.
 
 ---
 
-## 3. Kiến trúc Đánh chỉ mục (Indexing Architecture)
+## 2. Quy mô Dữ liệu
 
-### 3.1. Thuật toán SPIMI (`src/indexer/spimi.py` & `merging.py`)
+Hệ thống được triển khai trên tập dữ liệu thực tế lớn:
 
-Để xử lý 1.8 triệu bản ghi (~6.2GB dữ liệu thô) trên RAM hạn chế, nhóm sử dụng thuật toán **Single-Pass In-Memory Indexing**:
-
-* **Block Processing**: Dữ liệu được chia thành các khối 50.000 tài liệu. Mỗi khối được xử lý hoàn toàn trong RAM (Tokenize -> Invert) để đạt tốc độ tối đa.
-* **Garbage Collection**: Sau mỗi khối, hệ thống gọi `gc.collect()` và xóa bộ nhớ đệm để đảm bảo RAM luôn duy trì ở mức ổn định (< 2GB khi Indexing).
-* **Merging**: 37 blocks tạm thời được gộp lại bằng `heapq` (Min-heap) để tạo ra file Index nhị phân duy nhất, sắp xếp Alphabet để hỗ trợ Binary Search/Merge Join trong tương lai.
-
-### 3.2. Cấu trúc Inverted Index 2-File
-
-Để đạt hiệu năng Search < 0.5s, Index được tách thành 2 tệp chuyên biệt:
-
-1. **`term_dict.pkl`**: Lưu trữ 695,470 từ vựng duy nhất cùng với vị trí Byte (Offset) và độ dài (Length) trong file Postings.
-2. **`postings.bin`**: Lưu danh sách `(doc_id, tf)` dưới dạng nhị phân nguyên khối. Cơ chế **Random File Access (f.seek)** giúp truy xuất danh sách docs chứa từ khóa chỉ trong O(1) mà không cần load toàn bộ 1GB dữ liệu vào RAM.
+- **Số lượng tài liệu**: 1.842.525 doanh nghiệp trên toàn quốc.
+- **Kích thước dữ liệu thô**: Hơn 6.2 GB (định dạng JSONL).
+- **Độ đa dạng**: Bao quát đầy đủ các thông tin từ tên công ty, mã số thuế, địa chỉ, người đại diện cho đến các ngành nghề kinh doanh.
 
 ---
 
-## 4. Thuật toán Xếp hạng & Tối ưu (Ranking & Optimization)
+## 3. Cấu trúc và Chức năng các thành phần
 
-### 4.1. Lõi BM25 Thủ công (`src/ranking/bm25.py`)
+Hệ thống được tổ chức thành các khối chuyên biệt để xử lý dữ liệu quy mô lớn một cách ổn định:
 
-Nhóm tự triển khai công thức BM25 tiêu chuẩn với các tham số tối ưu cho Tiếng Việt:
+- **`src/indexer/spimi.py`**: Trái tim của quá trình "Lưu kho", thực hiện đọc 1.8 triệu bản ghi và phân loại từ khóa vào bộ nhớ đệm.
+- **`src/indexer/merging.py`**: Chịu trách nhiệm tổng hợp các phần dữ liệu đã phân loại thành một bộ từ điển hoàn chỉnh, giúp việc tìm kiếm không bị phân tán.
+- **`src/ranking/bm25.py`**: Bộ não của hệ thống, chứa thuật toán tính toán và xếp hạng để đảm bảo các kết quả phù hợp nhất luôn nằm ở đầu danh sách.
+- **`src/search_console.py`**: Giao diện điều khiển cho phép người dùng nhập từ khóa và hiển thị các thông tin tìm được một cách trực quan.
 
-* **IDF (Inverse Document Frequency)**: Làm nổi bật các từ khóa hiếm và đặc trưng.
-* **TF Saturation (k1=1.2)**: Kiểm soát việc lặp lại từ khóa quá mức trong Tên doanh nghiệp.
-* **Length Normalization (b=0.75)**: Cân bằng điểm số giữa các doanh nghiệp có tên ngắn và công ty có mô tả dài.
+**Các tệp dữ liệu cốt lõi (trong `data/index`):**
 
-### 4.2. Coordination Boost (Nâng cao độ chính xác)
-
-BM25 mặc định sử dụng toán tử OR, dễ dẫn đến hiện tượng "lạc đề" khi gặp truy vấn nhiều từ. Nhóm đã cải tiến bằng **Hệ số phối hợp**:
-
-* **Công thức**: `Score = Score * (nMatched / nQuery)^2`
-* **Kết quả**: Ưu tiên tuyệt đối các kết quả khớp đồng thời nhiều từ khóa (Ví dụ: Tìm "Xây dựng Hà Nội" sẽ đẩy các cty có cả 2 từ này lên đầu, thay vì các cty chỉ có từ "Hà Nội").
-
-### 4.3. Metadata On-demand & Fallback Logic
-
-* **Tiết kiệm RAM**: Chỉ lưu Byte Offsets của 1.8M dòng JSONL. Thông tin chi tiết (Tên, Địa chỉ, Rep) chỉ được đọc từ đĩa khi cần hiển thị Top 10 kết quả.
-* **Làm sạch dữ liệu (Display Cleanup)**:
-  * Tự động `strip(", ")` các địa chỉ lỗi định dạng (dư dấu phẩy ở đầu).
-  * Cung cấp **Fallback thông minh** cho ngành nghề (Kiểm tra `industries_str_seg` -> `industries_str` -> `industries_detail`) để đảm bảo không bao giờ trống thông tin Industry.
+- **`postings.bin`**: "Kho chứa" khổng lồ lưu danh sách các công ty chứa từng từ khóa. Đây là tệp nặng nhất (~1.1GB) nhưng đã được nén tối ưu.
+- **`term_dict.pkl`**: "Cuốn từ điển" giúp máy tính tra cứu nhanh vị trí của từ khóa trong kho chứa, giúp việc tìm kiếm diễn ra tức thì.
+- **`doc_lengths.pkl`**: Lưu trữ độ dài của từng doanh nghiệp để hỗ trợ việc chấm điểm công bằng giữa công ty có mô tả ngắn và dài.
+- **`doc_offsets.pkl`**: "Bản đồ vị trí" giúp máy tính tìm thấy thông tin chi tiết (địa chỉ, ngành nghề) của doanh nghiệp từ file gốc 6GB mà không cần đọc lại từ đầu.
 
 ---
 
-## 5. Thống kê & Kiểm chứng số liệu (Verified Statistics)
+## 4. Cách thức Hệ thống Vận hành
 
-Số liệu được trích xuất trực tiếp bằng công cụ minh chứng: `support/index_stats_verifier.py`.
+Để hệ thống chạy nhanh và không làm treo máy, nhóm đã triển khai thông qua hai quy trình chính:
 
-| Chỉ số | Giá trị thực tế | Ý nghĩa kỹ thuật |
-| :--- | :--- | :--- |
-| **Tổng số văn bản (N)** | **1.842.525** | Quy mô Big Data thực tế xử lý. |
-| **Vocabulary Size** | **695,470** | Tổng số "Terms" duy nhất (Tên riêng, địa danh, mã số). |
-| **Tổng số Tokens** | **342,502,541** | Tổng quy mô từ ngữ mà hệ thống đang quản lý. |
-| **Độ dài trung bình (Avgdl)** | **185.89** | Trung bình mỗi công ty có 186 từ mô tả. |
-| **Thời gian Tìm kiếm** | **< 0.5 giây** | Đã tối ưu Hot-loop và Random File Access. |
-| **RAM tiêu thụ (Search)** | **~58 MB** | Cực thấp nhờ kiến trúc File Seek & On-demand Metadata. |
+### 4.1. Quy trình "Lưu kho" dữ liệu (Indexing)
 
-### Giải trình về sự chênh lệch Vocabulary (M1 vs M2)
+Hãy tưởng tượng việc tìm kiếm trong 1.8 triệu tờ giấy rời rạc. Nếu đọc từng tờ sẽ mất hàng tiếng đồng hồ. Nhóm đã thực hiện:
 
-* **Milestone 1 (~18k)**: Là con số thống kê dựa trên **mẫu 1% dữ liệu** (sampling) để khảo sát nhanh ngôn ngữ tự nhiên.
-* **Milestone 2 (~695k)**: Là con số thực tế sau khi **Đánh chỉ mục 100% dữ liệu**. Do đặc thù dữ liệu doanh nghiệp chứa vô số tên riêng, địa chỉ, mã số thuế độc nhất, nên Vocabulary phản ánh đúng độ đa dạng cực lớn của 1.8 triệu thực thể thực tế.
+- **Xếp loại từ khóa**: Máy tính sẽ đọc qua toàn bộ doanh nghiệp, tách ra các từ quan trọng (ví dụ: "Xây dựng", "Hà Nội", "Công nghệ").
+- **Ghi chép vị trí**: Với mỗi từ, máy sẽ lưu lại danh sách các công ty chứa từ đó.
+- **Đóng gói thông minh**: Thay vì để dữ liệu rời rạc trên đĩa, nhóm đã nén và đóng gói lại chỉ còn **1.1GB** giúp việc truy xuất nhanh chóng hơn.
+
+### 4.2. Quy trình "Tìm kiếm & Xếp hạng" (Ranking)
+
+Khi người dùng nhập một câu hỏi, hệ thống thực hiện các bước sau:
+
+1. **Hiểu ý định**: Tách câu hỏi của bạn thành các từ có nghĩa (ví dụ: tìm "Công ty du lịch" sẽ hiểu bạn đang tìm ngành nghề).
+2. **Truy tìm nhanh**: Nhờ có "bản đồ vị trí" đã lập ở bước lưu kho, máy tính nhảy thẳng đến các kết quả liên quan mà không cần đọc lại toàn bộ dữ liệu.
+3. **Chấm điểm ưu tiên**: Một kết quả được đưa lên đầu nếu thỏa mãn:
+    - Tên công ty khớp hoàn toàn với từ khóa.
+    - Xuất hiện nhiều lần trong nội dung.
+    - Có chứa đồng thời tất cả các từ mà bạn đã nhập.
+4. **Lấy thông tin tức thời**: Toàn bộ địa chỉ, mã số thuế chỉ được máy tính đọc ra khi bạn thực sự nhìn thấy trên màn hình, giúp tiết kiệm bộ nhớ tối đa.
+
+---
+
+## 5. Những kết quả đạt được
+
+Nhóm đã đạt được những chỉ số vận hành lý tưởng, vượt xa kỳ vọng ban đầu:
+
+- **Tốc độ phản hồi**: Trung bình chỉ mất <1s để trả về 10 kết quả tốt nhất.
+- **Hiệu quả bộ nhớ**: Chỉ tốn khoảng <100MB RAM để chạy công cụ tìm kiếm.
+- **Độ sạch dữ liệu**: Hệ thống tự động sửa các lỗi địa chỉ thường gặp, lọc bỏ các ký tự rác.
+- **Tìm kiếm tiếng Việt chuẩn**: Xử lý tốt các từ ghép tiếng Việt (ví dụ: "bất động sản" được hiểu là một cụm từ duy nhất thay vì ba từ rời rạc).
 
 ---
 
-## 6. Phân tích lỗi & Bài học kinh nghiệm
+## 6. Định hướng Phát triển (Milestone 3)
 
-Trong quá trình hoàn thiện Milestone 2, nhóm đã phát hiện và ghi nhận một số vấn đề:
+Trong chặng đường cuối cùng, nhóm hướng tới sự hoàn thiện cuối cùng:
 
-1. **Lỗi Regex Crawling**: Mã số thuế chi nhánh (dạng `-xxx`) bị mất hậu tố do Regex cũ chỉ nhận chữ số. Điều này sẽ được khắc phục triệt để bằng cách cập nhật Crawler Parser (`mst_match = re.search(r'[\d-]+', text)`).
-2. **Hiệu năng Search**: Với các từ khóa cực phổ biến (DF > 80% như "xây dựng"), tốc độ search ban đầu bị chậm (> 2s). Nhóm đã khắc phục thành công bằng cách **Inline** code tính toán vào vòng lặp nóng (Hot-loop) và tối ưu hóa kiểu dữ liệu Python.
+- **Giao diện**: Xây dựng trang web tìm kiếm trực quan, mượt mà và dễ dùng.
+- **Bộ lọc chuyên sâu**: Cho phép người dùng lọc công ty theo tỉnh thành, theo tình trạng hoạt động hoặc theo độ phủ của ngành nghề.
 
 ---
-*Báo cáo Milestone 2 - Nhóm OverFitting - SEG301.*
+Nhóm OverFitting - Báo cáo Milestone 2 (Bản tổng hợp toàn diện & Chi tiết)
