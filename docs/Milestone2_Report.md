@@ -83,10 +83,10 @@ Mỗi dòng trong file JSONL là một JSON object đại diện cho một doanh
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                     PIPELINE MILESTONE 2                           │
+│                     PIPELINE MILESTONE 2                            │
 │                                                                     │
-│  [milestone1_fixed.jsonl]  ──►  [SPIMI Indexer]  ──►  [Merge]     │
-│       6.2 GB dữ liệu              spimi.py             merging.py  │
+│  [milestone1_fixed.jsonl]  ──►  [SPIMI Indexer]  ──►  [Merge]       │
+│       6.2 GB dữ liệu              spimi.py             merging.py   │
 │       1.8M documents              37 blocks            K-way Merge  │
 │                                   (50k doc/block)                   │
 │                                        │                            │
