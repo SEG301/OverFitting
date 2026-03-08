@@ -108,7 +108,7 @@ Mỗi dòng trong file JSONL là một JSON object đại diện cho một doanh
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**Luồng xử lý gồm 2 pha:**
+**Luồng xử lý gồm 3 pha:**
 
 | Pha | Tên | Script | Mục đích |
 |-----|-----|--------|----------|
