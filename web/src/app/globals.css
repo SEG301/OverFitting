@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-google-blue: #1a0dab;
+  --color-google-link-hover: #100880;
+  --color-google-gray: #4d5156;
+  --color-google-green: #006621;
+}
+
+body {
+  background-color: #ffffff;
+  color: #202124;
+}
+
+/* Custom Webkit scrollbar for modern looks */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dadce0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #bdc1c6;
+}
