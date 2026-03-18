@@ -78,7 +78,7 @@ class SearchService:
         self.initialized = True
         logger.info("Search Service fully booted.")
 
-    def search(self, raw_query: str, top_k: int = 10, use_reranker: bool = True, filters: dict = None) -> List[Dict[str, Any]]:
+    def search(self, raw_query: str, top_k: int = 10, skip: int = 0, use_reranker: bool = True, filters: dict = None) -> List[Dict[str, Any]]:
         """
         Executes the entire search pipeline with Filters:
         1. NLP Preprocessing
@@ -98,7 +98,7 @@ class SearchService:
         # 2. Hybrid Search Engine Execution -> Fetch larger pool if filtering
         hybrid_candidates = self.hybrid.search(
             query=processed_query, 
-            top_k=min(200, top_k * 10) if filters else min(100, top_k * 5),
+            top_k=min(200, (skip + top_k) * 10) if filters else min(100, (skip + top_k) * 5),
             fusion_strategy="weighted"
         )
         
@@ -120,9 +120,12 @@ class SearchService:
         
         # 4. Optional Re-Ranking (Massive accuracy boost but uses GPU time)
         if use_reranker and hybrid_candidates:
-            final_docs = self.reranker.rerank(processed_query, hybrid_candidates, top_k=top_k)
+            final_docs = self.reranker.rerank(processed_query, hybrid_candidates, top_k=skip + top_k)
         else:
-            final_docs = hybrid_candidates[:top_k]
+            final_docs = hybrid_candidates
+            
+        # Apply Pagination Slice
+        final_docs = final_docs[skip : skip + top_k]
             
         # Format response
         formatted_results = []

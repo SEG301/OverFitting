@@ -20,34 +20,46 @@ function SearchContent() {
   
   const [locationFilter, setLocationFilter] = useState("");
   const [industryFilter, setIndustryFilter] = useState("");
+  const [skip, setSkip] = useState(0);
+  const pageSize = 15;
 
   useEffect(() => {
     if (q) {
       setQuery(q);
-      handleSearch(q, locationFilter, industryFilter);
+      handleSearch(q, locationFilter, industryFilter, 0, false);
     }
   }, [q]);
 
-  const handleSearch = async (searchQuery: string, loc: string = locationFilter, ind: string = industryFilter) => {
+  const handleSearch = async (searchQuery: string, loc: string = locationFilter, ind: string = industryFilter, currentSkip: number = 0, append: boolean = false) => {
     if (!searchQuery.trim()) return;
     
     setLoading(true);
-    setHasSearched(true);
+    if (!append) setHasSearched(true);
     
     // Give UI a slightly noticeable transition (mimic real world load even if fast)
     const startTime = Date.now();
-    const data = await searchAPI.search(searchQuery, 15, useRerank, { location: loc, industry: ind });
+    const data = await searchAPI.search(searchQuery, pageSize, currentSkip, useRerank, { location: loc, industry: ind });
     const elapsed = Date.now() - startTime;
     
-    if (elapsed < 300) {
-       setTimeout(() => {
+    const updateState = () => {
+       if (append) {
+         setResults(prev => [...prev, ...data]);
+       } else {
          setResults(data);
-         setLoading(false);
-       }, 300 - elapsed);
-    } else {
-       setResults(data);
+       }
+       setSkip(currentSkip);
        setLoading(false);
+    };
+
+    if (elapsed < 300) {
+       setTimeout(updateState, 300 - elapsed);
+    } else {
+       updateState();
     }
+  };
+
+  const handleLoadMore = () => {
+    handleSearch(query, locationFilter, industryFilter, skip + pageSize, true);
   };
 
   if (!hasSearched && !q) {
@@ -100,7 +112,7 @@ function SearchContent() {
                      setQuery(comp);
                      // Set URL natively to trigger useEffect
                      window.history.pushState({}, '', `/?q=${encodeURIComponent(comp)}`);
-                     handleSearch(comp, locationFilter, industryFilter);
+                     handleSearch(comp, locationFilter, industryFilter, 0, false);
                   }}
                   className="bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 text-sm py-1.5 px-4 rounded-full transition-all duration-200 hover:scale-[1.02] shadow-sm hover:shadow-md cursor-pointer"
                 >
@@ -137,7 +149,7 @@ function SearchContent() {
           </button>
           
           <div className="w-full sm:max-w-3xl flex-1">
-            <SearchBar initialQuery={query} onSearch={(q) => handleSearch(q, locationFilter, industryFilter)} />
+            <SearchBar initialQuery={query} onSearch={(q) => handleSearch(q, locationFilter, industryFilter, 0, false)} />
           </div>
           
           <div className="ml-auto flex items-center gap-3">
@@ -193,7 +205,7 @@ function SearchContent() {
                       value={locationFilter}
                       onChange={(e) => {
                          setLocationFilter(e.target.value);
-                         handleSearch(query, e.target.value, industryFilter);
+                         handleSearch(query, e.target.value, industryFilter, 0, false);
                       }}
                       className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     >
@@ -213,14 +225,14 @@ function SearchContent() {
                       value={industryFilter}
                       onChange={(e) => setIndustryFilter(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSearch(query, locationFilter, industryFilter);
+                        if (e.key === 'Enter') handleSearch(query, locationFilter, industryFilter, 0, false);
                       }}
                       className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
 
                   <button 
-                    onClick={() => handleSearch(query, locationFilter, industryFilter)}
+                    onClick={() => handleSearch(query, locationFilter, industryFilter, 0, false)}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors text-sm"
                   >
                     Áp dụng bộ lọc
@@ -229,7 +241,7 @@ function SearchContent() {
                     onClick={() => {
                         setLocationFilter('');
                         setIndustryFilter('');
-                        handleSearch(query, '', '');
+                        handleSearch(query, '', '', 0, false);
                     }}
                     className="w-full mt-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors text-sm"
                   >
@@ -270,11 +282,14 @@ function SearchContent() {
                   )}
                   
                   {/* Pagination Stub */}
-                  {results.length > 0 && (
+                  {results.length > 0 && results.length >= skip + pageSize && (
                     <div className="mt-12 mb-20 flex flex-col items-center">
-                       <div className="flex h-[36px] bg-[#f1f3f4] rounded-[18px] px-6 text-[var(--color-google-blue)] font-bold items-center mb-8 hover:bg-[#e8eaed] cursor-pointer shadow-sm transition-all text-sm">
-                           Hiện thêm kết quả từ FAISS
-                       </div>
+                       <button 
+                           onClick={handleLoadMore}
+                           className="flex h-[36px] bg-[#f1f3f4] rounded-[18px] px-6 text-[var(--color-google-blue)] font-bold items-center mb-8 hover:bg-[#e8eaed] cursor-pointer shadow-sm transition-all text-sm"
+                       >
+                           Hiện thêm kết quả
+                       </button>
                     </div>
                   )}
                 </motion.div>

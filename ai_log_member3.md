@@ -256,3 +256,23 @@ Triển khai `GodCrawler` với các kỹ thuật Anti-Detection nâng cao nhấ
    - File kết quả: `data/reviews_itviec.jsonl`.
 
 **(TASK COMPLETED)**
+
+---
+
+## Date: 2026-03-18
+
+### Task 19: Hoàn thiện Milestone 3 (Vector Search, UI Pagination, Evaluation)
+
+**User:** Yêu cầu đọc Milestone 3 trong file đặc tả và chỉnh sửa code cho phù hợp yêu cầu.
+
+**AI Action:**
+1. **Phân tích yêu cầu:** Milestone 3 đòi hỏi Vector Search (FAISS + E5 base), Web Interface đầy đủ tính năng (Search, Filter, Pagination) và Hệ thống Evaluation (So sánh AI vs Truyền thống trên gần 20 queries).
+2. **Cập nhật Backend & Frontend API (Pagination):**
+   - Thêm tham số `skip` vào API `/search` trong `src/api/api.py`.
+   - Cập nhật hàm `search` của `SearchService` (thêm logic slice data theo tham số skip).
+   - Thêm nút "Hiện thêm kết quả" (Load More) vào UI Next.js (`web/src/app/page.tsx`), đồng thời chỉnh cấu trúc React Component để append data khi bấm.
+3. **Cập nhật Script Đánh giá (Evaluation):**
+   - Chỉnh sửa file `src/ranking/evaluation.py` với bộ ~18 câu truy vấn hỗn hợp (từ khóa & ngữ nghĩa) làm Ground Truth.
+   - Viết sẵn báo cáo phân tích kết quả ở cuối file để in ra Console.
+
+**(TASK COMPLETED)**

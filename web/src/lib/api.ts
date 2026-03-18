@@ -21,12 +21,13 @@ export interface SuggestResult {
 }
 
 export const searchAPI = {
-  search: async (query: string, topK: number = 10, useRerank: boolean = true, filters?: Record<string, string>): Promise<SearchResult[]> => {
+  search: async (query: string, topK: number = 10, skip: number = 0, useRerank: boolean = true, filters?: Record<string, string>): Promise<SearchResult[]> => {
     try {
       const response = await apiClient.get('/search', {
         params: { 
           q: query, 
           top_k: topK, 
+          skip: skip,
           use_rerank: useRerank,
           location: filters?.location,
           industry: filters?.industry
