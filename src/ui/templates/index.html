@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OverFitting — Tìm kiếm Doanh nghiệp Việt Nam</title>
+    <meta name="description" content="Công cụ tìm kiếm thông tin doanh nghiệp Việt Nam từ 1.8 triệu hồ sơ. Hỗ trợ BM25, Vector AI và Hybrid Search.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/" class="nav-brand">
+                <svg class="nav-logo" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <span class="nav-title">OverFitting</span>
+                <span class="nav-badge">SEG301</span>
+            </a>
+            <div class="nav-stats" id="nav-stats">
+                <div class="nav-stat"><strong id="stat-docs">—</strong> doanh nghiệp</div>
+                <div class="nav-stat-sep">|</div>
+                <div class="nav-stat"><strong id="stat-vocab">—</strong> từ vựng</div>
+                <div class="nav-stat-sep">|</div>
+                <div class="nav-stat">AI: <strong id="stat-ai">—</strong></div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main">
+        <!-- Search Bar -->
+        <section class="search-section">
+            <div class="search-bar-wrapper">
+                <div class="search-bar" id="search-bar">
+                    <svg class="search-bar-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input type="text" id="search-input" placeholder="Nhập tên công ty, mã số thuế, ngành nghề hoặc từ khoá..." autocomplete="off" spellcheck="false">
+                    <button class="search-bar-clear" id="clear-btn" onclick="clearSearch()" title="Xoá" style="display:none;">✕</button>
+                    <button class="search-bar-btn" id="search-btn" onclick="performSearch()">Tìm kiếm</button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="search-tabs">
+                    <button class="tab active" data-mode="hybrid" onclick="setMode('hybrid')">Hybrid Search</button>
+                    <button class="tab" data-mode="bm25" onclick="setMode('bm25')">BM25 (Từ khoá)</button>
+                    <button class="tab" data-mode="vector" onclick="setMode('vector')">Semantic (Ngữ nghĩa)</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Welcome (before search) -->
+        <section class="welcome" id="welcome">
+            <h2>Tìm kiếm thông tin doanh nghiệp Việt Nam</h2>
+            <p>Tra cứu từ <strong>1.8 triệu</strong> hồ sơ doanh nghiệp. Hỗ trợ tìm theo tên, mã số thuế, ngành nghề và cả ngữ nghĩa (AI).</p>
+            <div class="suggestions">
+                <span class="suggestions-label">Thử tìm:</span>
+                <button class="chip" onclick="quickSearch('công nghệ thông tin')">công nghệ thông tin</button>
+                <button class="chip" onclick="quickSearch('bất động sản Hà Nội')">bất động sản Hà Nội</button>
+                <button class="chip" onclick="quickSearch('xuất khẩu thủy sản')">xuất khẩu thủy sản</button>
+                <button class="chip" onclick="quickSearch('xây dựng cầu đường')">xây dựng cầu đường</button>
+                <button class="chip" onclick="quickSearch('máy tính chơi game')">máy tính chơi game</button>
+                <button class="chip" onclick="quickSearch('nhà hàng khách sạn')">nhà hàng khách sạn</button>
+            </div>
+        </section>
+
+        <!-- Loading -->
+        <section class="loading" id="loading" style="display:none;">
+            <div class="spinner"></div>
+            <p>Đang tìm kiếm...</p>
+        </section>
+
+        <!-- Results -->
+        <section class="results-section" id="results-section" style="display:none;">
+            <div class="results-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ebebeb; padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                <p class="results-summary" id="results-summary" style="margin: 0;"></p>
+                <div class="results-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <select id="province-filter" class="filter-dropdown" onchange="applyFilter()" style="padding: 6px 12px; border: 1px solid #dfe1e5; border-radius: 4px; outline: none; background: white; cursor: pointer;">
+                        <option value="all">Toàn quốc (Tất cả)</option>
+                    </select>
+                    <select id="status-filter" class="filter-dropdown" onchange="applyFilter()" style="padding: 6px 12px; border: 1px solid #dfe1e5; border-radius: 4px; outline: none; background: white; cursor: pointer;">
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="active">Đang hoạt động</option>
+                        <option value="inactive">Ngừng hoạt động</option>
+                    </select>
+                    <button class="export-btn" onclick="exportToCSV()" style="padding: 6px 12px; background: #1a0dab; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Tải Xuống CSV</button>
+                </div>
+            </div>
+            <div class="results-list" id="results-list"></div>
+            <div id="load-more-container" style="display:none; text-align:center; padding-top: 24px;">
+                <button class="search-bar-btn" onclick="loadMore()">Hiển thị thêm kết quả</button>
+            </div>
+        </section>
+
+        <!-- Empty -->
+        <section class="empty" id="empty" style="display:none;">
+            <h3>Không tìm thấy kết quả phù hợp</h3>
+            <p>Vui lòng thử nghiệm bằng một từ khóa khác hoặc thu gọn câu truy vấn.</p>
+        </section>
+
+        <!-- Detail Modal -->
+        <div id="detail-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+                <h2 id="modal-title" style="color: #1a0dab; padding-right: 24px; margin-bottom: 16px; font-size: 22px;"></h2>
+                <div id="modal-body"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <p>SEG301 — Search Engines & Information Retrieval · Nhóm <strong>OverFitting</strong> · FPT University 2026</p>
+            <p class="footer-sub">Nguyễn Thanh Trà · Phan Đỗ Thanh Tuấn · Châu Thái Nhật Minh</p>
+        </div>
+    </footer>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

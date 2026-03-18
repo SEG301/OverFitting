@@ -49,8 +49,8 @@ except ImportError:
 # ============================================================================
 
 # BM25 Parameters
-K1 = 1.2    # Term frequency saturation parameter
-B = 0.75    # Document length normalization parameter
+K1 = 1.2    # Term frequency saturation
+B = 0.4     # Document length normalization (reduced to prevent overly boosting short documents)
 
 # Paths
 DEFAULT_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data")
@@ -303,14 +303,17 @@ class BM25Searcher:
                 doc_scores[doc_id] += idf * tf_comp
                 doc_term_matches[doc_id] += 1
         
-        # Áp dụng Coordination Boost
-        # Score = Score * (Số từ khớp / Tổng số từ query)
-        num_query_tokens = len(query_tokens)
-        for doc_id in doc_scores:
-            n_matched = doc_term_matches[doc_id]
-            coordination_factor = n_matched / num_query_tokens
-            # Boost mạnh cho các kết quả khớp nhiều từ (mũ 2 để tạo sự cách biệt lớn)
-            doc_scores[doc_id] *= (coordination_factor ** 2)
+        # Lọc ra danh sách các valid tokens thực sự được đưa vào chấm điểm
+        valid_tokens = [t for t in query_tokens if t in self.term_dict and self.term_dict[t][0] <= max_df and self.compute_idf(t) > 0]
+        num_query_tokens = len(valid_tokens)
+        
+        # Áp dụng Coordination Boost mạnh để loại bỏ các kết quả "lạc đề" chỉ khớp 1 từ
+        # Đã FIX: num_query_tokens giờ đây chỉ đếm các từ không bị skip.
+        if num_query_tokens > 0:
+            for doc_id in doc_scores:
+                n_matched = doc_term_matches[doc_id]
+                coordination_factor = n_matched / num_query_tokens
+                doc_scores[doc_id] *= (coordination_factor ** 1.5)
         
         # Top-k
         sorted_docs = sorted(doc_scores.items(), key=lambda x: x[1], reverse=True)
