@@ -49,57 +49,22 @@ Theo đặc tả môn học, Milestone 3 yêu cầu 4 nhiệm vụ chính:
 ## 2. Kiến trúc Tổng thể Hệ thống (Final Architecture)
 
 ```mermaid
-graph TB
-    subgraph FRONTEND [FRONTEND - Browser SPA]
-        direction TB
-        FE_FILE[index.html + style.css + script.js]
-        FE1[Search Bar + Mode Tabs]
-        FE2[Dynamic Province Filter]
-        FE3[Status Filter + CSV Export]
-        FE4[Client-side Pagination]
-        FE5[Detail Modal + Scroll Lock]
-    end
+graph LR
+    USER["Browser (SPA)"] -->|HTTP JSON| API["FastAPI Backend"]
 
-    subgraph BACKEND [BACKEND - FastAPI + Uvicorn]
-        direction TB
-        API1[GET /api/search]
-        API2[GET /api/stats]
-        BOOST[Exact Match Boost]
-        MST[MST Regex Detection]
-        NORM[RRF Score Normalization]
-    end
+    API --> BM25["BM25 Searcher"]
+    API --> VEC["Vector Searcher (FAISS)"]
+    API --> MST["MST Bypass Scan"]
 
-    subgraph ENGINES [SEARCH ENGINES]
-        direction LR
-        subgraph BM25_BOX [BM25 Searcher - bm25.py]
-            BM25_IDX[term_dict.pkl 18MB + postings.bin 1.0GB]
-            BM25_CF[Coordination Factor 1.5]
-        end
-        subgraph VEC_BOX [Vector Searcher - vector.py]
-            VEC_IDX[FAISS IndexFlatIP 2.7GB]
-            VEC_MODEL[SentenceTransformer MiniLM-L12-v2]
-        end
-    end
+    BM25 --> RRF["Hybrid RRF (alpha=0.65)"]
+    VEC --> RRF
 
-    subgraph HYBRID [HYBRID ENGINE - RRF]
-        RRF[Reciprocal Rank Fusion alpha=0.65]
-        RULES[Exact/Substring Boost + MST Bypass]
-    end
+    RRF --> BOOST["Exact/Substring Boost"]
+    BOOST --> API
 
-    subgraph DATA [DATA LAYER]
-        JSONL[milestone1_fixed.jsonl 6.2GB 1.8M docs]
-        INDEX[data/index/ BM25 + FAISS Index]
-    end
-
-    FRONTEND -->|HTTP API JSON| BACKEND
-    BACKEND --> BM25_BOX
-    BACKEND --> VEC_BOX
-    BM25_BOX --> RRF
-    VEC_BOX --> RRF
-    RRF --> RULES
-    RULES --> BACKEND
-    BM25_BOX -.-> DATA
-    VEC_BOX -.-> DATA
+    BM25 -.-> IDX["Inverted Index (1.0GB)"]
+    VEC -.-> FAISS["FAISS Index (2.7GB)"]
+    MST -.-> JSONL["JSONL Data (6.2GB)"]
 ```
 
 ### Luồng xử lý khi User tìm kiếm
