@@ -698,3 +698,43 @@ Khắc phục nhược điểm "Lạc đề" nguyên thủy - khi mà dữ liệ
 - **Dynamic Province Filter (`script.js`):** Thay vì code cứng 6-7 tỉnh trong HTML. Viết module `extractProvince(address)` trên Javascript để tự xử lý dấu phẩy, bóc tách tên tỉnh cuối cùng, và loại bỏ các tiền tố dư thừa ("Tỉnh", "Thành phố"). Bộ lọc `<select>` sẽ tự động khởi tạo lại mỗi lần dựa trên `Set` các tỉnh có mặt thực tế trong số các kết quả tìm được. Lọc cực chuẩn xác thông qua Equals Operator `==` thay vì `includes`.
 
 **Result:** Module Tìm kiếm đã được vá tất cả những hành vi vi phân lỗi logic sâu nhất. Đạt ngưỡng "Chính xác tối đa" đối với các thông tin nhạy cảm định danh (MST, Địa chỉ, Tên pháp lý đứt đoạn), giao diện Web thông minh và mượt mà tuyệt đối.
+
+---
+
+### Date: 2026-03-22 (Session: Performance Benchmark & BM25 Speed Optimization)
+
+**Task:** Đo lường hiệu năng thực tế bằng benchmark, tối ưu tốc độ tìm kiếm và cập nhật report với số liệu có chứng minh.
+
+**User:** Tốc độ tìm kiếm còn chậm. Cần tìm cách tối ưu mà vẫn giữ độ chính xác cao. Tất cả số liệu trong report phải có file code chạy ra output chứng minh.
+
+**AI:** Đã thực hiện quy trình benchmark-first (đo trước, tối ưu sau):
+
+**Action 1: Tạo Benchmark Script (`tests/benchmark.py`):**
+- Xây dựng script đo lường tự động cho 20 queries đa dạng.
+- Đo latency (ms) và Precision@10 (heuristic keyword matching) cho cả 3 phương pháp: BM25, Vector Search, Hybrid Search.
+- Output tự động ghi vào `tests/benchmark_output.txt` làm bằng chứng.
+
+**Action 2: Phát hiện Bottleneck thực tế:**
+- Kết quả benchmark cho thấy **BM25 là bottleneck chính** (trung bình 544ms, max 2084ms), không phải Vector Search (chỉ 154ms trên CPU).
+- Nguyên nhân: Các từ phổ biến (VD: "công_ty") có postings list lên tới 1.3 triệu entries, Python phải loop qua toàn bộ.
+
+**Action 3: Tối ưu BM25 — Giới hạn Postings (`bm25.py`):**
+- Thêm `MAX_POSTINGS_PER_TERM = 200,000`: Cắt bớt postings list quá dài, giảm latency trung bình từ 544ms xuống 331ms (-39%), max từ 2084ms xuống 841ms (-60%).
+- Precision@10 giữ nguyên 0.945 (BM25) và 0.950 (Hybrid).
+
+**Action 4: Auto-detect CUDA/CPU (`vector.py`):**
+- Thêm logic `torch.cuda.is_available()` để tự động chọn device. Máy không có GPU vẫn chạy được.
+
+**Action 5: Cập nhật Report (`Milestone3_Report.md`):**
+- Thay thế toàn bộ số liệu ước lượng bằng số liệu đo thực tế từ benchmark.
+- Xác minh và sửa tất cả metadata (số dòng code, dung lượng file index) bằng lệnh Python.
+- Loại bỏ nội dung quá trình thử nghiệm/version cũ, chỉ giữ mô tả sản phẩm cuối cùng.
+
+**Kết quả Benchmark cuối cùng (đã xác minh):**
+
+| Metric | BM25 | Vector | Hybrid |
+| :--- | :--- | :--- | :--- |
+| Avg Latency | 331ms | 152ms | 470ms |
+| Precision@10 | 0.945 | 0.815 | **0.950** |
+
+**Result:** Toàn bộ số liệu trong Milestone 3 Report đều có thể tái tạo bằng lệnh `py tests/benchmark.py`. Report đã được cập nhật sạch sẽ, không còn số liệu bịa đặt hay quá trình thử nghiệm.
