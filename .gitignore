@@ -23,3 +23,6 @@ support/
 # Backup/Old Code
 code2/
 code3/
+
+# Tests
+tests/
