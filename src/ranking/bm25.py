@@ -239,20 +239,25 @@ class BM25Searcher:
         if not query_tokens:
             return []
         
-        # Ngưỡng df tối đa: term xuất hiện >30% docs sẽ bị bỏ qua
-        max_df = int(self.total_docs * 0.3)
+        # Ngưỡng df tối đa: term xuất hiện >20% docs sẽ bị bỏ qua (thường là stopword/văn mẫu)
+        max_df = int(self.total_docs * 0.2)
         
         # Accumulate BM25 scores
         doc_scores = defaultdict(float)
         skipped_terms = []
         
+        # Sắp xếp query terms theo độ hiếm (df thấp trước) để tối ưu thời gian lọc
+        scored_terms = []
         for term in query_tokens:
-            if term not in self.term_dict:
-                continue
-            
-            df = self.term_dict[term][0]
-            
-            # Skip terms quá phổ biến (postings list quá lớn)
+            if term in self.term_dict:
+                scored_terms.append((term, self.term_dict[term][0]))
+        scored_terms.sort(key=lambda x: x[1])
+        
+        # Chỉ xử lý tối đa 50,000 documents đầu tiên từ các term hiếm nhất để giữ Latency < 300ms
+        max_accumulated_docs = 50000
+        
+        for term, df in scored_terms:
+            # Skip terms quá phổ biến (postings list hàng triệu entries cực chậm)
             if df > max_df:
                 skipped_terms.append(f"{term}(df={df:,d})")
                 continue
@@ -265,10 +270,19 @@ class BM25Searcher:
             if postings is None:
                 continue
             
+            # Tối ưu: Nếu postings quá dài, chỉ lấy 50k docs đầu tiên (thường là những docs tốt nhất từ index)
+            process_limit = 50000
+            count = 0
             for doc_id, tf in postings:
                 doc_length = self.doc_lengths.get(doc_id, self.avg_doc_length)
                 tf_comp = self.compute_tf_component(tf, doc_length)
                 doc_scores[doc_id] += idf * tf_comp
+                count += 1
+                if count >= process_limit: break
+            
+            # Stop sớm nếu đã có quá nhiều ứng viên tiềm năng
+            if len(doc_scores) >= max_accumulated_docs:
+                break
         
         # Top-k
         sorted_docs = sorted(doc_scores.items(), key=lambda x: x[1], reverse=True)

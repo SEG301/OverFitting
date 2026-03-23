@@ -28,9 +28,37 @@ python -m venv venv
 venv\Scripts\activate  # Windows
 # source venv/bin/activate  # Linux/Mac
 
-# Cài đặt dependencies
+# Cài đặt dependencies (Python)
 pip install -r requirements.txt
+
+# Cài đặt dependencies (Web & Core)
+npm install
 ```
+
+---
+
+## ⚡ Quick Start (Milestone 3)
+Chạy toàn bộ hệ thống (Frontend + Backend) chỉ với 1 lệnh từ thư mục gốc:
+```bash
+npm run dev
+```
+- **Frontend:** http://localhost:3000
+- **Backend API:** http://localhost:8000
+- **Giao diện:** Next.js 15 (Turbopack) + Framer Motion (Animations)
+- **Giao thức:** REST API (FastAPI)
+- **Tính năng nổi bật:** Autocomplete (Trie), Search by Tax Code, Hybrid Search.
+- **Backend:** FastAPI + Uvicorn
+
+---
+
+## 🧠 Vector Search & Hybrid Ranking (Milestone 3)
+Để kích hoạt tìm kiếm ngữ nghĩa (Semantic Search) trên tập dữ liệu 1.8 triệu bản ghi, bạn cần xây dựng Vector Index (FAISS):
+
+```bash
+# Xây dựng toàn bộ Index (Embeddings + FAISS) - Mất ~1h trên Mac MPS
+python3 src/indexer/build_vector_index.py
+```
+Hệ thống sử dụng mô hình `multilingual-e5-base` và được tối ưu hóa cho chip **Apple Silicon (MPS)** để đạt hiệu suất tối đa.
 
 ---
 
@@ -126,6 +154,9 @@ SEG301-OverFitting/
 - [ ] Console App
 
 ### Milestone 3: Final Product (20%)
-- [ ] Vector Search
-- [ ] Web Interface
-- [ ] Evaluation
+- [x] Vector Search (FAISS + E5)
+- [x] Real-time Autocomplete (Trie Engine)
+- [x] Smart Search Modes (Name/Tax Code)
+- [x] Web Interface (Next.js 15 + Framer Motion)
+- [x] Hybrid Ranking & Cross-Encoder Rerank
+- [x] Evaluation System

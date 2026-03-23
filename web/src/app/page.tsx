@@ -6,7 +6,8 @@ import SearchBar from "@/components/SearchBar";
 import ResultItem from "@/components/ResultItem";
 import { searchAPI, SearchResult } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { SearchIcon, Loader2 } from "lucide-react";
+import { SearchIcon, Loader2, X } from "lucide-react";
+import CompanyCard from "@/components/CompanyCard";
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -15,52 +16,142 @@ function SearchContent() {
   const [query, setQuery] = useState(q || "");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [useRerank, setUseRerank] = useState(true);
   
   const [locationFilter, setLocationFilter] = useState("");
   const [industryFilter, setIndustryFilter] = useState("");
   const [skip, setSkip] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const pageSize = 15;
+  
+  // Progress State
+  const [searchStatus, setSearchStatus] = useState("Lexical Search Engine (BM25)...");
+  const [progress, setProgress] = useState(0);
+
+  const [modalLoading, setModalLoading] = useState(false);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [selectedCompanyData, setSelectedCompanyData] = useState<any>(null);
+  const modeFromUrl = (searchParams.get("mode") as 'name' | 'tax_code') || 'name';
+  const [searchMode, setSearchMode] = useState<'name' | 'tax_code'>(modeFromUrl);
 
   useEffect(() => {
-    if (q) {
-      setQuery(q);
-      handleSearch(q, locationFilter, industryFilter, 0, false);
+    const qParam = searchParams.get("q");
+    const modeParam = (searchParams.get("mode") as 'name' | 'tax_code') || 'name';
+    
+    if (modeParam !== searchMode) {
+      setSearchMode(modeParam);
     }
-  }, [q]);
 
-  const handleSearch = async (searchQuery: string, loc: string = locationFilter, ind: string = industryFilter, currentSkip: number = 0, append: boolean = false) => {
+    if (qParam && (qParam !== query || results.length === 0)) {
+      setQuery(qParam);
+      handleSearch(qParam, locationFilter, industryFilter, 0, false, modeParam);
+    }
+  }, [searchParams]);
+
+  const handleSearch = async (searchQuery: string, loc: string = locationFilter, ind: string = industryFilter, currentSkip: number = 0, append: boolean = false, mode: 'name' | 'tax_code' = searchMode) => {
     if (!searchQuery.trim()) return;
     
-    setLoading(true);
-    if (!append) setHasSearched(true);
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setResults([]); // Clear previous results to force progress bar to show
+      setLoading(true);
+      setHasSearched(true);
+      setProgress(10);
+      setSearchStatus(mode === 'name' ? "Lexical Search (BM25) - Filtering 1.8M docs..." : "Tax ID Engine - Perfect Match Lookup...");
+    }
     
-    // Give UI a slightly noticeable transition (mimic real world load even if fast)
-    const startTime = Date.now();
-    const data = await searchAPI.search(searchQuery, pageSize, currentSkip, useRerank, { location: loc, industry: ind });
-    const elapsed = Date.now() - startTime;
+    // UI Progress Sequence simulation
+    const progressInterval = !append ? setInterval(() => {
+        setProgress(prev => {
+            if (prev < 40) return prev + 5;
+            if (prev < 75) return prev + 2; 
+            if (prev < 95) return prev + 1;
+            return prev;
+        });
+    }, 200) : null;
+
+    if (!append) {
+        if (mode === 'name') {
+            setTimeout(() => setSearchStatus("Semantic Vector Mapping (FAISS E5)..."), 600);
+            if (useRerank) setTimeout(() => setSearchStatus("Deep Neural Re-Ranking (MS-Marco AI)..."), 1300);
+        } else {
+            setTimeout(() => setSearchStatus("Validating Tax ID checksum..."), 400);
+        }
+    }
+
+    const data = await searchAPI.search(
+        searchQuery, 
+        pageSize, 
+        currentSkip, 
+        useRerank, 
+        { location: loc, industry: ind },
+        mode === 'tax_code'
+    );
+    
+    if (progressInterval) clearInterval(progressInterval);
+    setProgress(100);
     
     const updateState = () => {
+       setHasMore(data.length === pageSize); // Set hasMore based on actual data returned
+       
        if (append) {
-         setResults(prev => [...prev, ...data]);
+         setResults(prev => {
+            const existingIds = new Set(prev.map(r => r.universal_id));
+            const newResults = data.filter(r => !existingIds.has(r.universal_id));
+            return [...prev, ...newResults];
+         });
+         setLoadingMore(false);
        } else {
          setResults(data);
+         setLoading(false);
        }
        setSkip(currentSkip);
-       setLoading(false);
     };
 
-    if (elapsed < 300) {
-       setTimeout(updateState, 300 - elapsed);
-    } else {
-       updateState();
-    }
+    updateState();
   };
 
   const handleLoadMore = () => {
-    handleSearch(query, locationFilter, industryFilter, skip + pageSize, true);
+    handleSearch(query, locationFilter, industryFilter, skip + pageSize, true, searchMode);
   };
+
+  const openCompanyModal = async (id: string) => {
+    setSelectedCompanyId(id);
+    setModalLoading(true);
+    // Push state silently to keep URL meaningful without triggering a page-level re-search
+    window.history.pushState({ modal: true, query }, '', `/company/${encodeURIComponent(id)}`);
+    
+    try {
+      const data = await searchAPI.getCompany(id);
+      setSelectedCompanyData(data);
+    } catch (err) {
+      console.error("Failed to fetch company details:", err);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const closeCompanyModal = () => {
+    setSelectedCompanyId(null);
+    setSelectedCompanyData(null);
+    // Restore search URL without triggering the search useEffect (since query state remains same)
+    window.history.pushState({ modal: false }, '', `/?q=${encodeURIComponent(query)}`);
+  };
+
+  // Handle browser back button to close modal
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (selectedCompanyId) {
+        setSelectedCompanyId(null);
+        setSelectedCompanyData(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [selectedCompanyId]);
 
   if (!hasSearched && !q) {
     // HOMEPAGE VIEW (Google-like)
@@ -112,7 +203,7 @@ function SearchContent() {
                      setQuery(comp);
                      // Set URL natively to trigger useEffect
                      window.history.pushState({}, '', `/?q=${encodeURIComponent(comp)}`);
-                     handleSearch(comp, locationFilter, industryFilter, 0, false);
+                     handleSearch(comp, locationFilter, industryFilter, 0, false, 'name');
                   }}
                   className="bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 text-sm py-1.5 px-4 rounded-full transition-all duration-200 hover:scale-[1.02] shadow-sm hover:shadow-md cursor-pointer"
                 >
@@ -149,7 +240,10 @@ function SearchContent() {
           </button>
           
           <div className="w-full sm:max-w-3xl flex-1">
-            <SearchBar initialQuery={query} onSearch={(q) => handleSearch(q, locationFilter, industryFilter, 0, false)} />
+            <SearchBar 
+                initialQuery={query} 
+                onSearch={(q, mode) => handleSearch(q, locationFilter, industryFilter, 0, false, mode)} 
+            />
           </div>
           
           <div className="ml-auto flex items-center gap-3">
@@ -253,15 +347,24 @@ function SearchContent() {
 
           {/* Main Results Column */}
           <div className="flex-1 max-w-3xl">
-            <AnimatePresence mode="wait">
-              {loading ? (
+            <AnimatePresence>
+            {loading && results.length === 0 ? (
                 <motion.div 
                    key="loader"
                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                   className="py-10 flex flex-col items-center justify-center space-y-4"
+                   className="py-10 flex flex-col items-center justify-center space-y-6"
                 >
-                  <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-                  <p className="text-gray-500 animate-pulse">Neural Engine đang trích xuất dữ liệu...</p>
+                  <div className="w-full max-w-md bg-gray-100 h-1 rounded-full overflow-hidden">
+                     <motion.div 
+                        initial={{ width: "0%" }}
+                        animate={{ width: `${progress}%` }}
+                        className="h-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.6)]"
+                     />
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                    <p className="text-gray-500 font-medium text-sm tracking-wide">{searchStatus}</p>
+                  </div>
                 </motion.div>
               ) : (
                 <motion.div key="results" className="space-y-1">
@@ -277,19 +380,31 @@ function SearchContent() {
                     </div>
                   ) : (
                     results.map((item, index) => (
-                      <ResultItem key={item.universal_id} result={item} index={index} />
+                      <ResultItem 
+                        key={item.universal_id} 
+                        result={item} 
+                        index={index} 
+                        onClick={() => openCompanyModal(item.universal_id)}
+                      />
                     ))
                   )}
                   
-                  {/* Pagination Stub */}
-                  {results.length > 0 && results.length >= skip + pageSize && (
+                  {/* Pagination Section */}
+                  {results.length > 0 && hasMore && (
                     <div className="mt-12 mb-20 flex flex-col items-center">
-                       <button 
-                           onClick={handleLoadMore}
-                           className="flex h-[36px] bg-[#f1f3f4] rounded-[18px] px-6 text-[var(--color-google-blue)] font-bold items-center mb-8 hover:bg-[#e8eaed] cursor-pointer shadow-sm transition-all text-sm"
-                       >
-                           Hiện thêm kết quả
-                       </button>
+                       {loadingMore ? (
+                        <div className="flex items-center space-x-2 text-blue-500 py-4">
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span className="text-sm font-medium">Đang tải thêm...</span>
+                        </div>
+                       ) : (
+                        <button 
+                            onClick={handleLoadMore}
+                            className="flex h-[36px] bg-[#f1f3f4] rounded-[18px] px-6 text-[var(--color-google-blue)] font-bold items-center mb-8 hover:bg-[#e8eaed] cursor-pointer shadow-sm transition-all text-sm"
+                        >
+                            Hiện thêm kết quả
+                        </button>
+                       )}
                     </div>
                   )}
                 </motion.div>
@@ -323,6 +438,41 @@ function SearchContent() {
           </div>
         </div>
       </main>
+
+      {/* DETAIL MODAL - Premium Zero-Reload UI */}
+      <AnimatePresence>
+        {selectedCompanyId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-10">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeCompanyModal}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            
+            {/* Modal Content */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-5xl max-h-full overflow-y-auto bg-white rounded-3xl shadow-2xl z-10 custom-scrollbar"
+            >
+              <button 
+                onClick={closeCompanyModal}
+                className="absolute top-6 right-6 p-2 rounded-full bg-white/20 hover:bg-white/40 text-white z-20 transition-all backdrop-blur-md border border-white/30"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              
+              <div className="p-0">
+                <CompanyCard company={selectedCompanyData} loading={modalLoading} />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,0 +1,16 @@
+{
+  "name": "overfitting",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n \"next,api\" -c \"magenta,blue\" \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd web && npm run dev",
+    "dev:backend": "python3 -m uvicorn src.api.api:app --reload --host 0.0.0.0 --port 8000 || python -m uvicorn src.api.api:app --reload --host 0.0.0.0 --port 8000"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

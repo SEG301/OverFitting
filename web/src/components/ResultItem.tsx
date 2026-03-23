@@ -7,9 +7,10 @@ import { SearchResult } from "@/lib/api";
 interface ResultItemProps {
   result: SearchResult;
   index: number;
+  onClick?: () => void;
 }
 
-export default function ResultItem({ result, index }: ResultItemProps) {
+export default function ResultItem({ result, index, onClick }: ResultItemProps) {
   // Extracting URL to highlight as a breadcrumb logic for the UI
   const urlDomain = "infodoanhnghiep.com";
   
@@ -32,12 +33,12 @@ export default function ResultItem({ result, index }: ResultItemProps) {
           </p>
         </div>
 
-        {/* Title Link */}
-        <Link href={`/company/${encodeURIComponent(result.universal_id)}`}>
+        {/* Title Link - Updated to trigger modal instead of full page nav */}
+        <div onClick={onClick}>
           <h3 className="text-xl font-normal text-[var(--color-google-blue)] hover:underline cursor-pointer">
             {result.company_name}
           </h3>
-        </Link>
+        </div>
         
         {/* Descriptive snippet with score */}
         <div className="mt-1 text-sm text-[var(--color-google-gray)] line-clamp-3">

@@ -45,3 +45,15 @@ crawler_pid.txt
 cookies.json
 user_agent.txt
 *.html
+
+# Node
+node_modules/
+.next/
+dist/
+out/
+build/
+
+# Indices & Binary
+*.index
+*.pkl
+*.bin

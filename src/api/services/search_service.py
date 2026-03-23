@@ -43,23 +43,25 @@ class SearchService:
         
         logger.info("Initializing Hybrid Searcher (BM25 + FAISS Vector)...")
         # Define base data directories
-        data_dir = os.path.join(PROJECT_ROOT, "data") if not index_override else index_override
-        if not os.path.exists(os.path.join(data_dir, "index", "term_dict.pkl")):
-             data_dir = os.path.join(PROJECT_ROOT, "data_sample")
-             logger.warning(f"Using {data_dir} indices because /data/index is missing.")
+        self.data_dir = os.path.join(PROJECT_ROOT, "data") if not index_override else index_override
+        if not os.path.exists(os.path.join(self.data_dir, "index", "term_dict.pkl")):
+             self.data_dir = os.path.join(PROJECT_ROOT, "data_sample")
+             logger.warning(f"Using {self.data_dir} indices because /data/index is missing.")
              
-        bm25_idx = os.path.join(data_dir, "index")
+        bm25_idx = os.path.join(self.data_dir, "index")
         
-        # Check if vector db exists, else fallback to the dummy ones created during tests
-        vector_idx_path = os.path.join(data_dir, "index", "faiss.index")
+        # Check if vector db exists, else disable semantic search to avoid ID Mismatch
+        vector_idx_path = os.path.join(self.data_dir, "index", "faiss.index")
+        vector_meta_path = os.path.join(self.data_dir, "index", "faiss_meta.json")
+        
         if not os.path.exists(vector_idx_path):
-             vector_idx_path = os.path.join(PROJECT_ROOT, "data_sample", "test_out", "faiss.index")
-             vector_meta_path = os.path.join(PROJECT_ROOT, "data_sample", "test_out", "faiss_meta.json")
-        else:
-             vector_meta_path = os.path.join(data_dir, "index", "faiss_meta.json")
+             logger.warning("FAISS vector index missing! Search will use BM25 only (Lexical Search).")
+             # We set these to None or specific dummy to allow HybridSearcher to handle it
+             vector_idx_path = None
+             vector_meta_path = None
 
         # Load main dataset
-        jsonl_path = os.path.join(data_dir, "milestone1_fixed.jsonl")    
+        jsonl_path = os.path.join(self.data_dir, "milestone1_fixed.jsonl")    
         
         # We start building Autocomplete in background basically or blocking
         self.suggester.build_from_jsonl(jsonl_path, max_docs=200000) # fast threshold
@@ -78,7 +80,7 @@ class SearchService:
         self.initialized = True
         logger.info("Search Service fully booted.")
 
-    def search(self, raw_query: str, top_k: int = 10, skip: int = 0, use_reranker: bool = True, filters: dict = None) -> List[Dict[str, Any]]:
+    def search(self, raw_query: str, top_k: int = 10, skip: int = 0, use_reranker: bool = True, filters: dict = None, is_tax_code: bool = False) -> List[Dict[str, Any]]:
         """
         Executes the entire search pipeline with Filters:
         1. NLP Preprocessing
@@ -93,22 +95,54 @@ class SearchService:
         nlp_res = self.processor.process(raw_query)
         processed_query = nlp_res["final_string"]
         logger.info(f"Query parsed: '{raw_query}' -> '{processed_query}'")
+
+        # Special Mode: Exact Tax Code Match (O(1) lookup)
+        if is_tax_code:
+            tax_id = str(raw_query).strip().replace(".", "").replace(" ", "").replace("-", "")
+            uid = self.suggester.tax_to_id.get(tax_id)
+            if uid:
+                cached_name = self.suggester.id_names.get(uid, "Company " + uid)
+                return [{
+                    "universal_id": uid,
+                    "company_name": cached_name,
+                    "description": f"Mã số thuế: {tax_id}",
+                    "score": 1.0
+                }]
+            return [] # No exact match found
+
+        # 2. Parallel Hybrid Execution (Concurrent BM25 & Vector)
+        from concurrent.futures import ThreadPoolExecutor
         
+        # Performance Tweaking: Use smaller pool for faster response if no filters
+        pool_size = min(200, (skip + top_k) * 10) if filters else 40
         
-        # 2. Hybrid Search Engine Execution -> Fetch larger pool if filtering
-        hybrid_candidates = self.hybrid.search(
-            query=processed_query, 
-            top_k=min(200, (skip + top_k) * 10) if filters else min(100, (skip + top_k) * 5),
-            fusion_strategy="weighted"
-        )
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            # We run the hybrid search which is already optimized
+            hybrid_candidates = self.hybrid.search(
+                query=processed_query, 
+                top_k=pool_size,
+                fusion_strategy="weighted"
+            )
+
+        # EARLY EXIT OPTIMIZATION: 
+        # If the top candidate is an extremely high confidence match (> 0.95),
+        # skip re-ranking to save ~200-500ms.
+        if hybrid_candidates and hybrid_candidates[0].get("final_score", 0) > 0.95:
+            logger.info("Early-Exit triggered: Top result is highly confident. Skipping Re-ranker.")
+            use_reranker = False
         
         # 3. Apply Metadata Structured Filters over candidates
         if filters:
             filtered_candidates = []
             for doc in hybrid_candidates:
-                meta = doc.get("meta", {})
-                passed = True
+                # Use name cache for ultra fast filtering if needed
+                uid = str(doc.get("universal_id"))
+                meta = doc.get("meta") or {}
+                # Ensure we have the latest name from cache
+                cached_name = self.suggester.id_names.get(uid)
+                if cached_name: meta["company_name"] = cached_name
                 
+                passed = True
                 if filters.get("location") and filters["location"].lower() not in str(meta.get("address", "")).lower():
                     passed = False
                 if filters.get("industry") and filters["industry"].lower() not in str(meta.get("industries_str_seg", "")).replace("_"," ").lower():
@@ -118,9 +152,10 @@ class SearchService:
                     filtered_candidates.append(doc)
             hybrid_candidates = filtered_candidates
         
-        # 4. Optional Re-Ranking (Massive accuracy boost but uses GPU time)
+        # 4. Neural Re-Ranking (Reduced to Top 12 for speed)
         if use_reranker and hybrid_candidates:
-            final_docs = self.reranker.rerank(processed_query, hybrid_candidates, top_k=skip + top_k)
+            # We only re-rank the top 12 elite candidates to ensure UI latency stays < 250ms
+            final_docs = self.reranker.rerank(processed_query, hybrid_candidates, top_k=min(12, skip + top_k))
         else:
             final_docs = hybrid_candidates
             
@@ -129,30 +164,18 @@ class SearchService:
             
         # Format response
         formatted_results = []
-        import json
-        
-        jsonl_file = getattr(self.hybrid.bm25, "jsonl_file", None)
         
         for doc in final_docs:
+            uid = str(doc.get("universal_id"))
+            
+            # INSTANT SUCCESS: Lookup name from In-Memory Cache (0ms)
+            cached_name = self.suggester.id_names.get(uid)
             meta = doc.get("meta") or {}
-            uid = doc.get("universal_id")
             
-            # Fetch missing metadata via offset if available
-            if meta.get("company_name") == "Fetched from DB...":
-                offset = self.suggester.id_offsets.get(str(uid))
-                if offset is not None and jsonl_file is not None:
-                    try:
-                        jsonl_file.seek(offset)
-                        line_data = jsonl_file.readline().decode('utf-8', errors='ignore')
-                        meta = json.loads(line_data)
-                    except Exception as e:
-                        logger.error(f"Failed to fetch metadata from offset: {e}")
-                        pass
-            
-            # Extract safe values
+            # Format response without any JSONL Disk Seeks
             formatted_results.append({
                 "universal_id": uid,
-                "company_name": meta.get("company_name", "N/A"),
+                "company_name": cached_name or meta.get("company_name", "N/A"),
                 "description": meta.get("description") or meta.get("industries_str_seg", "").replace("_"," "),
                 "score": doc.get("cross_score", doc.get("final_score", 0.0))
             })

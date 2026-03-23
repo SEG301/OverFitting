@@ -40,27 +40,12 @@ class DocumentReRanker:
         self.model = CrossEncoder(model_name, device=self.device)
         self.batch_size = batch_size
         
-    def _construct_document_text(self, metadata: dict) -> str:
+    def _construct_document_text(self, doc: Dict[str, Any]) -> str:
         """
-        Combines metadata fields into a single text block for the Cross-Encoder.
-        Must match the semantic patterns the model was trained on.
+        Constructs a concise text representation for reranking.
+        Focuses only on company name for maximum speed.
         """
-        if not metadata:
-            return ""
-            
-        parts = []
-        if "company_name" in metadata and metadata["company_name"]:
-            parts.append(metadata["company_name"])
-            
-        # Often the industries or tags contain strong relevance signals
-        if "industries_str_seg" in metadata and metadata["industries_str_seg"]:
-            parts.append(metadata["industries_str_seg"].replace("_", " "))
-            
-        # Description or reviews if available
-        if "description" in metadata and metadata["description"]:
-            parts.append(metadata["description"])
-            
-        return " | ".join(parts)
+        return doc.get("company_name", "")
 
     def rerank(self, query: str, documents: List[Dict[str, Any]], top_k: int = 10) -> List[Dict[str, Any]]:
         """

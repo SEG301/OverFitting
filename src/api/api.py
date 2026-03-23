@@ -85,14 +85,15 @@ async def do_search(
     skip: int = Query(0, ge=0, description="Number of results to skip for pagination"),
     use_rerank: bool = Query(True, description="Enable Cross-Encoder validation (Slower but 2x accurate)"),
     location: Optional[str] = Query(None, description="Filter by location address"),
-    industry: Optional[str] = Query(None, description="Filter by industry tags")
+    industry: Optional[str] = Query(None, description="Filter by industry tags"),
+    is_tax_code: bool = Query(False, description="Enable exact tax code search")
 ):
     """
     Executes a high-performance Hybrid Search against 1.8M documents with Filters and Pagination.
     """
     try:
         # Cache Look-Up
-        cache_key = f"search:{q}:{top_k}:{skip}:{use_rerank}:{location}:{industry}"
+        cache_key = f"search:{q}:{top_k}:{skip}:{use_rerank}:{location}:{industry}:{is_tax_code}"
         if CACHE_ENABLED:
             try:
                 cached_res = redis_client.get(cache_key)
@@ -107,7 +108,13 @@ async def do_search(
         
         # Async Execution: Prevents blocking the main FastAPI worker thread for heavy CPU tasks
         results = await asyncio.to_thread(
-            search_service.search, raw_query=q, top_k=top_k, skip=skip, use_reranker=use_rerank, filters=filters
+            search_service.search, 
+            raw_query=q, 
+            top_k=top_k, 
+            skip=skip, 
+            use_reranker=use_rerank, 
+            filters=filters,
+            is_tax_code=is_tax_code
         )
         
         # Cache Writing

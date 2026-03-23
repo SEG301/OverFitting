@@ -64,14 +64,22 @@ class HybridSearcher:
         self.bm25 = EnhancedBM25Searcher(index_dir=bm25_index_dir, jsonl_path=jsonl_path)
         self.bm25.load_index()
         
-        # 2. Init FAISS
+        # 2. Init FAISS (Handle missing index gracefully)
         self.vector_idx = VectorSearchIndex(dimension=768)
-        self.vector_idx.load_index(faiss_index_path, faiss_meta_path)
+        if faiss_index_path and os.path.exists(faiss_index_path):
+            self.vector_idx.load_index(faiss_index_path, faiss_meta_path)
+            self.vector_enabled = True
+        else:
+            print("WARNING: FAISS Index not found. Semantic Search is DISABLED.")
+            self.vector_enabled = False
         
         # 3. Init SentenceTransformer (Query encoder)
-        device = "mps" if __import__('torch').backends.mps.is_available() else ("cuda" if __import__('torch').cuda.is_available() else "cpu")
-        print(f"Loading '{model_name}' on {device.upper()} for online query encoding...")
-        self.encoder = SentenceTransformer(model_name, device=device)
+        if self.vector_enabled:
+            device = "mps" if __import__('torch').backends.mps.is_available() else ("cuda" if __import__('torch').cuda.is_available() else "cpu")
+            print(f"Loading '{model_name}' on {device.upper()} for online query encoding...")
+            self.encoder = SentenceTransformer(model_name, device=device)
+        else:
+            self.encoder = None
         
         print(f"Hybrid Search initialized in {time.time() - start_time:.2f}s")
         
@@ -120,17 +128,21 @@ class HybridSearcher:
             })
             
         # --- 2. Vector Search ---
-        query_text = f"query: {query}" # e5-base instruction
-        q_emb = self.encoder.encode([query_text], convert_to_numpy=True, normalize_embeddings=True)
-        raw_vector_results = self.vector_idx.search(q_emb, top_k=pool_size)
-        
         vector_results = []
-        for rank, res in enumerate(raw_vector_results, 1):
-            vector_results.append({
-                "universal_id": res["doc_id"],
-                "score": res["score"],
-                "rank": rank
-            })
+        if self.vector_enabled and self.encoder:
+            query_text = f"query: {query}" # e5-base instruction
+            q_emb = self.encoder.encode([query_text], convert_to_numpy=True, normalize_embeddings=True)
+            raw_vector_results = self.vector_idx.search(q_emb, top_k=pool_size)
+            
+            for rank, res in enumerate(raw_vector_results, 1):
+                vector_results.append({
+                    "universal_id": res["doc_id"],
+                    "score": res["score"],
+                    "rank": rank
+                })
+        else:
+            # Vector search disabled
+            pass
             
         # --- 3. Normalize & Link records ---
         self._normalize_scores(bm25_results)    # adds "norm_score"
@@ -182,13 +194,21 @@ class HybridSearcher:
                 
         # Sort descending by fused score
         final_list.sort(key=lambda x: x["final_score"], reverse=True)
-        final_list = final_list[:top_k]
+        
+        # FINAL DEDUPLICATION: Ensure absolutely no duplicate universal_ids in the slice
+        seen_ids = set()
+        deduped_results = []
+        for item in final_list:
+            uid = item["universal_id"]
+            if uid not in seen_ids:
+                deduped_results.append(item)
+                seen_ids.add(uid)
+                
+        final_list = deduped_results[:top_k]
         
         # Lazy-load metadata for vector-only candidates that made it to top_k
         for item in final_list:
             if item["meta"] is None:
-                # To get metadata for a vector-only hit, we ideally reverse lookup in BM25 or JSONL
-                # For high performance demo, we stub it. In a real db, we'd query by universal_id here.
                 item["meta"] = {"company_name": "Fetched from DB...", "universal_id": item["universal_id"]}
                 
         latency = (time.time() - t0) * 1000
