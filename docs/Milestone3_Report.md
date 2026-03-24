@@ -47,11 +47,18 @@ Theo đặc tả môn học, Milestone 3 yêu cầu 4 nhiệm vụ chính:
 
 ```mermaid
 graph LR
-    USER["Browser (SPA)"] -->|HTTP JSON| API["FastAPI Backend"]
+    USER["Browser (SPA)"] -->|1. HTTP Query| API["FastAPI Backend"]
 
-    API --> BM25["BM25 Searcher"]
-    API --> VEC["Vector Searcher (FAISS)"]
-    API --> MST["MST Bypass Scan"]
+    API -->|2a. MST Check| MST["MST Bypass Scan"]
+    MST -.-> MIDX["MST Index (32MB)"]
+    MST -.-> JSONL["JSONL Data (6.2GB)"]
+    MST -->|Match| API
+
+    API -->|2b. Search| BM25["BM25 Searcher"]
+    API -->|2b. Search| VEC["Vector Searcher (FAISS)"]
+    
+    BM25 -.-> IDX["Inverted Index (1.0GB)"]
+    VEC -.-> FAISS["FAISS Index (2.7GB)"]
 
     BM25 --> RRF["Hybrid RRF (alpha=0.65)"]
     VEC --> RRF
@@ -59,9 +66,7 @@ graph LR
     RRF --> BOOST["Exact/Substring Boost"]
     BOOST --> API
 
-    BM25 -.-> IDX["Inverted Index (1.0GB)"]
-    VEC -.-> FAISS["FAISS Index (2.7GB)"]
-    MST -.-> JSONL["JSONL Data (6.2GB)"]
+    API -->|3. JSON Response| USER
 ```
 
 ### Luồng xử lý khi User tìm kiếm
@@ -69,22 +74,24 @@ graph LR
 ```mermaid
 flowchart TD
     A[User nhap query] --> B[Frontend gui GET /api/search]
-    B --> C{Regex: Co phai MST? 8-15 chu so}
+    B --> C{Regex: Co phai MST?}
 
     C -- La MST --> D["O(1) Hash Map Lookup"]
-    D --> E[Tra cuu file qua Byte Offset]
-    E --> K[JSON Response - Frontend]
+    D --> E{Ket qua?}
+    E -- Co --> K[JSON Response - Server]
+    E -- Khong --> F
 
-    C -- Khong phai MST --> F[BM25 Search Top 2000 docs]
-    C -- Khong phai MST --> G[Vector Search Top 2000 docs]
+    C -- Khong phai MST --> F[BM25 Search Top docs]
+    C -- Khong phai MST --> G[Vector Search Top docs]
 
     F --> H[RRF Fusion alpha=0.65]
     G --> H
 
-    H --> I[Exact Match Boost +100/+90/+30/+20]
-    I --> J[Score Normalize phan tram]
-    J --> K
-    K --> L[Client-side Pagination 10/trang]
+    H --> I[Exact Match Boost +100/+90/+50/+30/+20]
+    I --> K
+    
+    K --> J[Frontend: Normalize %]
+    J --> L[Client-side Pagination & Filters]
 ```
 
 ---
@@ -274,22 +281,27 @@ for result in results:
     comp_name = result["company_name"].lower()
     addr = result["address"].lower()
 
-    # Exact Match
-    if comp_name == q_lower:        result["score"] += 100.0  # Khớp tuyệt đối tên
-    elif q_lower in comp_name:      result["score"] += 30.0   # Substring trong tên
+    # Exact Match Company Name
+    if comp_name == q_lower:        result["score"] += 100.0   # Khớp tuyệt đối tên
+    elif f" {q_lower} " in f" {comp_name} ": 
+                                   result["score"] += 50.0    # Cụm từ khớp chính xác
+    elif q_words_set.issubset(comp_words_set):
+                                   result["score"] += 30.0    # Khớp tập hợp các từ
 
-    if addr == q_lower:             result["score"] += 90.0   # Khớp tuyệt đối địa chỉ
-    elif q_lower in addr:           result["score"] += 20.0   # Substring trong địa chỉ
+    # Exact Match Address
+    if addr == q_lower:             result["score"] += 90.0    # Khớp tuyệt đối địa chỉ
+    elif q_lower in addr:           result["score"] += 20.0    # Substring trong địa chỉ
 ```
 
 **Bảng tóm tắt Boost:**
 
 | Loại khớp         | Điểm thưởng | Ví dụ                                                            |
 | ------------------- | --------------- | ------------------------------------------------------------------ |
-| Exact Name Match    | +100.0          | query = "Công Ty TNHH ABC" → tên = "Công Ty TNHH ABC"          |
-| Substring Name      | +30.0           | query = "Phần mềm ABC" → tên = "CÔNG TY TNHH PHẦN MỀM ABC"  |
-| Exact Address Match | +90.0           | query = "123 Đường XYZ, Q1" → address = "123 Đường XYZ, Q1" |
-| Substring Address   | +20.0           | query = "Đường 210, Ấp 1A" → address chứa chuỗi này        |
+| Exact Name Match    | +100.0          | query = "Công Ty ABC" → tên = "Công Ty ABC"                    |
+| Phrase in Name      | +50.0           | query = "ABC" → tên = "Công ty TNHH ABC"                       |
+| Substring Words     | +30.0           | query = "Vận tải ABC" → tên = "CÔNG TY ABC VẬN TẢI"          |
+| Exact Address Match | +90.0           | query = "123 Đường X" → address = "123 Đường X"              |
+| Substring Address   | +20.0           | query = "Đường X" → address chứa chuỗi này                   |
 
 **Điều kiện kích hoạt**: Chỉ áp dụng khi query có từ 2 từ trở lên (tránh false positive với query 1 từ quá ngắn).
 
