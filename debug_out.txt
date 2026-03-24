@@ -1,0 +1,19 @@
+Tokens: ['công_ty', 'nghệ', 'công_nghệ', 'cp', 'ty', 'vibeteks', 'công_nghệ_vibeteks', 'công']
+công_ty -> 1000864
+nghệ -> 1421
+công_nghệ -> 185007
+cp -> 21368
+ty -> 493
+vibeteks -> 1
+công_nghệ_vibeteks -> 0
+công -> 12806
+12.16 | CÔNG TY CP CÔNG NGHỆ VIBETEKS
+8.77 | CHI NHÁNH C.TY CỔ PHẦN PHÁT TRIỂN VÀ ĐẦU TƯ CÔNG KỶ NGHỆ IDE
+8.34 | CÔNG TY TNHH KỸ NGHỆ VÀ DỊCH VỤ CHUYÊN GIA THỂ THAO
+8.25 | Công ty CP công nghệ máy tính Minh Thành
+8.12 | CÔNG TY CỔ PHẦN KỸ NGHỆ BÁCH VIỆT
+7.97 | Viện nghiên cứu đào tạo và chuyển giao công nghệ - CN công ty CP đào tạo và định giá BĐS PHương Nam
+7.52 | CÔNG TY CP PHÁT TRIỂN CÔNG NGHỆ AN TOÀN VIỆT NAM
+7.08 | CÔNG TY CP QUỸ XÃ HỘI VÀ CỘNG ĐỒNG SCF
+7.02 | CÔNG TY TNHH THƯƠNG MẠI VÀ KỸ NGHỆ PHƯƠNG ANH
+6.76 | Công Ty Cổ Phần Phát Triển Kỹ Nghệ Và Đầu Tư Thương Mại Htv

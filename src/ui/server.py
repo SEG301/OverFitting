@@ -55,6 +55,18 @@ print("=" * 60)
 print("  ✅ All systems ready!")
 print("=" * 60)
 
+# Load MST index
+import pickle
+mst_index_path = os.path.join(INDEX_DIR, "mst_index.pkl")
+mst_index = {}
+if os.path.exists(mst_index_path):
+    print("Loading MST Index for O(1) lookup...")
+    with open(mst_index_path, "rb") as f:
+        mst_index = pickle.load(f)
+    print(f"Loaded MST Index: {len(mst_index):,} records")
+else:
+    print("⚠️ No mst_index.pkl found (Searching by MST will be O(N)!)")
+
 
 # ============================================================================
 # HELPERS
@@ -72,8 +84,9 @@ def _meta_to_dict(meta: dict) -> dict:
 
 
 def hybrid_search(query: str, top_k: int = 10, alpha: float = 0.65):
-    bm25_results = bm25_searcher.search(query, top_k=top_k * 2)
-    vector_results = vector_searcher.search(query, top_k=top_k * 2) if vector_loaded else []
+    pool = max(top_k * 3, 50)
+    bm25_results = bm25_searcher.search(query, top_k=pool)
+    vector_results = vector_searcher.search(query, top_k=pool) if vector_loaded else []
 
     k = 60
     combined = {}
@@ -119,37 +132,56 @@ async def api_search(
 
     if is_id:
         found_docs = []
-        q_mst = f'"tax_code": "{q_clean}"'
         try:
-            with open(bm25_searcher.jsonl_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    if q_mst in line:
+            if mst_index:
+                # O(1) Lookup with Hash Map
+                if q_clean in mst_index:
+                    byte_offset = mst_index[q_clean]
+                    # We can use the already opened jsonl file via BM25Searcher
+                    if bm25_searcher.jsonl_file:
+                        bm25_searcher.jsonl_file.seek(byte_offset)
+                        raw_line = bm25_searcher.jsonl_file.readline()
+                        line = raw_line.decode("utf-8", errors="ignore")
                         doc = json.loads(line)
                         found_docs.append({
                             "doc_id": -1,
                             "score": 100.0,
                             **_meta_to_dict(doc)
                         })
-                        break
+            else:
+                # Fallback to O(N) linear scan if index is missing
+                q_mst = f'"tax_code": "{q_clean}"'
+                with open(bm25_searcher.jsonl_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if q_mst in line:
+                            doc = json.loads(line)
+                            found_docs.append({
+                                "doc_id": -1,
+                                "score": 100.0,
+                                **_meta_to_dict(doc)
+                            })
+                            break
         except Exception:
             pass
-        elapsed = (time.time() - start) * 1000
-        return {
-            "query": q,
-            "mode": "exact_mst",
-            "results": found_docs,
-            "total": len(found_docs),
-            "time_ms": round(elapsed, 1)
-        }
+            
+        if len(found_docs) > 0:
+            elapsed = (time.time() - start) * 1000
+            return {
+                "query": q,
+                "mode": "exact_mst",
+                "results": found_docs,
+                "total": len(found_docs),
+                "time_ms": round(elapsed, 1)
+            }
 
     if mode == "bm25":
-        raw = bm25_searcher.search(q, top_k=top_k)
+        raw = bm25_searcher.search(q, top_k=max(top_k * 3, 50))
         results = [
             {"doc_id": doc_id, "score": round(score, 4), **_meta_to_dict(meta)}
             for doc_id, score, meta in raw
         ]
     elif mode == "vector":
-        raw = vector_searcher.search(q, top_k=top_k) if vector_loaded else []
+        raw = vector_searcher.search(q, top_k=max(top_k * 3, 50)) if vector_loaded else []
         results = []
         for doc_id, score in raw:
             meta = bm25_searcher._get_doc_metadata(doc_id)
@@ -159,8 +191,10 @@ async def api_search(
         
     # 2. Áp dụng Exact Match Boost (Tôn trọng tuyệt đối Tên danh tính & Địa chỉ)
     q_lower = q_clean.lower()
-    q_words = len(q_lower.split())
+    q_words_list = q_lower.split()
+    q_words = len(q_words_list)
     if q_words >= 2:
+        q_words_set = set(q_words_list)
         for r in results:
             comp_name = r.get("company_name", "").lower().strip()
             addr = r.get("address", "").lower().strip()
@@ -169,7 +203,12 @@ async def api_search(
             if comp_name == q_lower:
                 r["score"] += 100.0  # Khớp tuyệt đối tên công ty
             elif f" {q_lower} " in f" {comp_name} ":
-                r["score"] += 30.0   # Khớp chính xác cụm từ khóa bên trong tên
+                r["score"] += 50.0   # Khớp chính xác cụm từ khóa bên trong tên
+            else:
+                # Tìm kiếm 1 phần tên doanh nghiệp (cho phép bị xen từ, VD: "Công ty abc" -> "Công ty TNHH abc")
+                comp_words_set = set(comp_name.split())
+                if q_words_set.issubset(comp_words_set):
+                    r["score"] += 30.0
                 
             # Ưu tiên theo địa chỉ (rất quan trọng cho user)
             if addr == q_lower:
@@ -182,11 +221,18 @@ async def api_search(
     
     elapsed = (time.time() - start) * 1000
 
+    true_total = len(results)
+    if mode == "vector":
+        # Vector search doesn't have a natural 'count', so we simulate it or use the pool
+        true_total = len(vector_searcher.search(q, top_k=2000)) if vector_loaded else 0
+    elif hasattr(bm25_searcher, 'last_match_count'):
+        true_total = bm25_searcher.last_match_count
+
     return {
         "query": q,
         "mode": mode,
         "results": results,
-        "total": len(results),
+        "total": true_total,
         "time_ms": round(elapsed, 1),
     }
 

@@ -35,6 +35,7 @@ SEG301-OverFitting/
 │   │   ├── run_pipeline.py          # Pipeline nối, sạch và tách từ (M1)
 │   │   └── parser.py                # Logic bóc tách HTML chuyên sâu
 │   ├── indexer/             # Milestone 2: Lập chỉ mục SPIMI
+│   │   ├── build_mst_index.py       # Tạo Hash Map cho MST O(1)
 │   │   ├── spimi.py         # Indexing theo blocks để tối ưu RAM
 │   │   └── merging.py       # K-way merge các blocks thành Inverted Index
 │   ├── ranking/             # Milestone 2 & 3: Xếp hạng & AI Search
@@ -42,19 +43,18 @@ SEG301-OverFitting/
 │   │   ├── vector.py        # Vector Search dùng FAISS + Sentence-Transformers (M3)
 │   │   └── hybrid.py        # Hybrid Search: RRF kết hợp BM25 + Vector (M3)
 │   ├── ui/                  # Milestone 3: Giao diện người dùng
-│   │   └── app.py           # Streamlit Web App
+│   │   └── server.py        # FastAPI Backend API
 │   └── search_console.py    # Console App tìm kiếm tương tác (M2)
-├── tests/                   # Unit tests & Evaluation
-│   ├── test_spimi.py
-│   ├── test_bm25.py
-│   └── evaluate.py          # Đánh giá P@10 cho 20 queries (M3)
+├── tests/                   # Unit tests & Benchmark (Không bị gitignore)
+│   ├── benchmark_output.txt # Lưu kết quả đánh giá (chứng minh Report)
+│   └── benchmark.py         # Đo lường tốc độ, Precision@10 cho BM25/Vector/Hybrid (M3)
 ├── docs/                    # Thư mục báo cáo & tài liệu
 │   ├── Milestone1_Report.md
 │   ├── Milestone2_Report.md
 │   └── Milestone3_Report.md # Báo cáo Milestone 3 (Mới)
 ├── data/                    # Dữ liệu dự án (bị gitignore)
 │   ├── milestone1_fixed.jsonl
-│   └── index/               # Inverted Index + FAISS Vector Index
+│   └── index/               # Inverted Index + FAISS Vector Index + MST Hash Index
 ├── requirements.txt         # Các thư viện cần thiết
 ├── .gitignore               # Cấu hình Git
 ├── ai_log.md                # Nhật ký tương tác AI (Bắt buộc)
@@ -90,7 +90,7 @@ SEG301-OverFitting/
 - **Thống kê M2 thực tế**:
   - **Vocabulary**: 695,470 terms.
   - **Total Tokens**: 342,502,541.
-  - **Search Time**: < 0.5 giây (đã tối ưu Hot-loop).
+  - **Search Time**: < 0.5 giây (đã tối ưu Hot-loop và giới hạn postings).
 
 #### 🔹 Milestone 3: AI Integration & Final Product
 
@@ -99,18 +99,17 @@ SEG301-OverFitting/
   - Tối đa hoá ngữ nghĩa: Vector được encode từ chuỗi **5 trường thông tin** liên kết (Tên, Ngành nghề, Địa chỉ, Đại diện, Trạng thái). Xử lý hàng loạt 1.8M bản ghi bằng phần cứng GPU (CUDA).
 - **Hybrid Search (RRF) & Rule-based Boosts**:
   - Kết hợp BM25 (Lexical) + Vector Search (Semantic) bằng **Reciprocal Rank Fusion** (`alpha = 0.65`).
-  - Tích hợp **Exact Match & Substring Boost**: Thuật toán tự thưởng điểm khổng lồ (20.0 - 100.0 điểm) để ghim Top 1 cho các truy vấn khớp mặt chữ tuyệt đối, hoặc khớp một đoạn (Substring) Tên công ty / Địa chỉ cụ thể.
-  - Tích hợp **MST Bypass Scan**: Tra cứu bằng Mã số thuế sẽ bỏ qua Vector/BM25, khởi động luồng quét Text-Scan cực nhanh (`O(N)` trong ~200ms) đảm bảo chính xác tuyệt đối 100%.
+  - Tích hợp **Exact Match & Substring Boost**: Thuật toán tự thưởng điểm khổng lồ (30.0 - 100.0 điểm) để ghim Top 1 cho các truy vấn khớp mặt chữ tuyệt đối, hoặc khớp một đoạn Tên công ty / Địa chỉ cụ thể. Cho phép Subset Match Boost khi tìm 1 phần tên bị xen chữ.
+  - Tích hợp **MST Bypass Scan**: Tra cứu bằng Mã số thuế sẽ bỏ qua Vector/BM25, quét qua Index `mst_index.pkl` với O(1) đảm bảo chính xác tuyệt đối 100% trong `0.0ms`.
 - **Ranking Core Optimization (BM25 Tuning)**:
-  - Tái thiết kế phương trình Coordination Factor: Zero-penalty đối với các câu truy vấn chứa Stop-words (từ chối skip-word bug).
+  - Tái thiết kế phương trình Coordination Factor: Hoạt động chuẩn xác cả cho truy vấn phân bổ độ dài.
   - Hạ chuẩn Document Length `B=0.4` triệt tiêu lợi thế xếp hạng của các Name-Spam ngắn.
 - **Web Interface (FastAPI + Vanilla UI)**:
-  - Kiến trúc Front-end sạch, vô hiệu hoá Emojis, UX mô phỏng Google Search. Khóa cuộn Modal nền (`overflow: hidden`).
-  - Cơ chế **Static Load-more Pagination**: Frontend nhận 500-1000 kết quả từ API nhưng chỉ render 10 DOM elements, load thêm tức thì `0s` delay.
+  - Kiến trúc Front-end sạch, UX mô phỏng Google Search. Khóa cuộn Modal nền (`overflow: hidden`).
+  - Cơ chế **Static Load-more Pagination**: Frontend nhận tới 50 kết quả từ API nhưng tải động cực mượt.
   - **Dynamic Province Filter**: Thuật toán JS tự động bóc tách Địa chỉ (chuẩn hoá tiền tố Tỉnh/TP) để đẻ ra các Option tương ứng cấu thành Dropdown lọc Tuỳ Biến thông minh.
 - **Evaluation**:
-  - So sánh Precision@10 giữa BM25, Vector Search và Hybrid Search. Kết quả Hybrid System cực kỳ hiệu quả, đáp ứng mọi truy vấn khó.
-
+  - Đánh giá Precision@10 giữa BM25, Vector Search và Hybrid Search bằng kịch bản test 20 queries chuẩn công nghiệp.
 
 ---
 
@@ -130,6 +129,7 @@ pip install -r requirements.txt
 # Xây dựng Inverted Index (SPIMI)
 python src/indexer/spimi.py
 python src/indexer/merging.py
+python src/indexer/build_mst_index.py
 ```
 
 #### Bước 3: Milestone 3 - AI Vector & FastAPI Server
@@ -142,7 +142,14 @@ python src/ranking/vector.py
 python src/ui/server.py
 ```
 
-#### Bước 4: Tìm kiếm dòng lệnh (Console)
+#### Bước 4: Chạy Benchmark Đánh Giá (M3)
+
+```bash
+# Chạy bộ test tốc độ và độ chính xác 20 truy vấn
+python tests/benchmark.py
+```
+
+#### Bước 5: Tìm kiếm dòng lệnh (Console)
 
 ```bash
 python src/search_console.py

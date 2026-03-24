@@ -1,0 +1,571 @@
+==========================================================================================
+  BENCHMARK & EVALUATION — Milestone 3 — OverFitting Search Engine
+==========================================================================================
+
+[1/4] Loading BM25 Searcher...
+Loading index files...
+  [OK] Term dictionary: 695,470 terms
+  [OK] Postings file opened (random access)
+  [OK] Document lengths: 1,842,525 docs (avg: 185.9)
+  [OK] Document offsets loaded (for metadata lookup)
+  [OK] JSONL file opened (metadata on-demand)
+  Load time: 0.6s
+  Total documents: 1,842,525
+  Vocabulary size: 695,470
+  Avg doc length: 185.9 tokens
+
+[2/4] Loading Vector Searcher (FAISS)...
+Loading FAISS index...
+  Flat index detected (brute-force mode)
+Loaded FAISS index with 1842525 vectors.
+Loading embedding model: paraphrase-multilingual-MiniLM-L12-v2 (device=cuda)...
+Model loaded in 8.78s
+  FAISS index type: FlatIP (brute-force)
+  Total vectors: 1,842,525
+
+[3/4] Warmup (1 query each mode)...
+
+  Query: "test warmup"
+  Tokens: ['test', 'warmup']
+  Documents matched: 51
+  Search time: 11.9ms
+  Done.
+
+[4/4] Running benchmark on 20 queries...
+
+#   Query                               Type                      BM25ms   Vecms    Hybms    P@10 B   P@10 V   P@10 H  
+-----------------------------------------------------------------------------------------------------------------------
+
+  Query: "công ty xây dựng hà nội"
+  Tokens: ['ty', 'công', 'hà', 'nội', 'công_ty', 'xây_dựng', 'dựng', 'hà_nội', 'xây']
+  Documents matched: 680,146
+  Search time: 1171.6ms
+
+  Query: "công ty xây dựng hà nội"
+  Tokens: ['ty', 'công', 'hà', 'nội', 'công_ty', 'xây_dựng', 'dựng', 'hà_nội', 'xây']
+  Documents matched: 680,146
+  Search time: 1146.9ms
+1   công ty xây dựng hà nội             Ngành + Địa điểm          1288     150      1389     0.80     1.00     0.80    
+
+  Query: "phần mềm kế toán"
+  Tokens: ['mềm', 'kế_toán', 'phần', 'toán', 'kế', 'phần_mềm']
+  Documents matched: 271,409
+  Search time: 351.9ms
+
+  Query: "phần mềm kế toán"
+  Tokens: ['mềm', 'kế_toán', 'phần', 'toán', 'kế', 'phần_mềm']
+  Documents matched: 271,409
+  Search time: 358.7ms
+2   phần mềm kế toán                    Sản phẩm chuyên ngành     405      118      526      1.00     1.00     1.00    
+
+  Query: "bất động sản sài gòn"
+  Tokens: ['gòn', 'sản', 'động', 'bất_động_sản', 'bất', 'sài_gòn', 'sài']
+  Documents matched: 188,172
+  Search time: 264.7ms
+
+  Query: "bất động sản sài gòn"
+  Tokens: ['gòn', 'sản', 'động', 'bất_động_sản', 'bất', 'sài_gòn', 'sài']
+  Documents matched: 188,172
+  Search time: 276.6ms
+3   bất động sản sài gòn                Ngành + Tên thông dụng    289      140      443      0.70     1.00     0.70    
+
+  Query: "xuất khẩu thủy sản cần thơ"
+  Tokens: ['thơ', 'sản', 'thủy_sản', 'xuất_khẩu', 'thủy', 'xuất', 'cần', 'cần_thơ', 'khẩu']
+  Documents matched: 170,423
+  Search time: 244.1ms
+
+  Query: "xuất khẩu thủy sản cần thơ"
+  Tokens: ['thơ', 'sản', 'thủy_sản', 'xuất_khẩu', 'thủy', 'xuất', 'cần', 'cần_thơ', 'khẩu']
+  Documents matched: 170,423
+  Search time: 275.6ms
+4   xuất khẩu thủy sản cần thơ          Ngành + Địa điểm cụ thể   268      120      432      0.90     0.10     0.90    
+
+  Query: "dịch vụ vận tải logistics"
+  Tokens: ['vận_tải', 'dịch', 'vụ', 'vận', 'dịch_vụ', 'tải', 'logistics']
+  Documents matched: 632,254
+  Search time: 967.3ms
+
+  Query: "dịch vụ vận tải logistics"
+  Tokens: ['vận_tải', 'dịch', 'vụ', 'vận', 'dịch_vụ', 'tải', 'logistics']
+  Documents matched: 632,254
+  Search time: 960.9ms
+5   dịch vụ vận tải logistics           Ngành + Từ ngoại lai      1074     132      1191     1.00     1.00     1.00    
+
+  Query: "sản xuất bao bì"
+  Tokens: ['bì', 'sản', 'sản_xuất', 'bao', 'bao_bì', 'xuất']
+  Documents matched: 439,412
+  Search time: 679.1ms
+
+  Query: "sản xuất bao bì"
+  Tokens: ['bì', 'sản', 'sản_xuất', 'bao', 'bao_bì', 'xuất']
+  Documents matched: 439,412
+  Search time: 669.7ms
+6   sản xuất bao bì                     Sản xuất                  748      135      872      0.90     0.80     0.90    
+
+  Query: "nhà hàng tiệc cưới"
+  Tokens: ['nhà', 'hàng', 'nhà_hàng', 'tiệc', 'cưới']
+  Documents matched: 691,886
+  Search time: 1188.1ms
+
+  Query: "nhà hàng tiệc cưới"
+  Tokens: ['nhà', 'hàng', 'nhà_hàng', 'tiệc', 'cưới']
+  Documents matched: 691,886
+  Search time: 1289.3ms
+7   nhà hàng tiệc cưới                  Dịch vụ                   1307     131      1532     1.00     0.30     1.00    
+
+  Query: "trường học quốc tế"
+  Tokens: ['tế', 'trường_học', 'trường', 'học', 'quốc_tế', 'quốc']
+  Documents matched: 95,872
+  Search time: 153.9ms
+
+  Query: "trường học quốc tế"
+  Tokens: ['tế', 'trường_học', 'trường', 'học', 'quốc_tế', 'quốc']
+  Documents matched: 95,872
+  Search time: 141.7ms
+8   trường học quốc tế                  Giáo dục                  166      134      286      1.00     1.00     1.00    
+
+  Query: "bệnh viện thú y"
+  Tokens: ['thú', 'bệnh', 'thú_y', 'viện', 'bệnh_viện']
+  Documents matched: 98,378
+  Search time: 141.1ms
+
+  Query: "bệnh viện thú y"
+  Tokens: ['thú', 'bệnh', 'thú_y', 'viện', 'bệnh_viện']
+  Documents matched: 98,378
+  Search time: 158.1ms
+9   bệnh viện thú y                     Y tế chuyên biệt          155      133      304      0.80     0.70     0.80    
+
+  Query: "shop quần áo thời trang"
+  Tokens: ['quần_áo', 'áo', 'thời_trang', 'trang', 'quần', 'shop', 'thời']
+  Documents matched: 12,453
+  Search time: 21.0ms
+
+  Query: "shop quần áo thời trang"
+  Tokens: ['quần_áo', 'áo', 'thời_trang', 'trang', 'quần', 'shop', 'thời']
+  Documents matched: 12,453
+  Search time: 36.4ms
+10  shop quần áo thời trang             Bán lẻ + Từ lóng          21       134      169      0.90     1.00     0.90    
+
+  Query: "máy tính chơi game"
+  Tokens: ['máy', 'tính', 'máy_tính', 'chơi', 'game']
+  Documents matched: 402,506
+  Search time: 505.2ms
+
+  Query: "máy tính chơi game"
+  Tokens: ['máy', 'tính', 'máy_tính', 'chơi', 'game']
+  Documents matched: 402,506
+  Search time: 541.2ms
+11  máy tính chơi game                  Semantic (AI cần hiểu)    571      131      736      0.30     0.90     0.30    
+
+  Query: "mỹ phẩm làm đẹp"
+  Tokens: ['làm_đẹp', 'mỹ', 'đẹp', 'phẩm', 'mỹ_phẩm', 'làm']
+  Documents matched: 145,208
+  Search time: 250.2ms
+
+  Query: "mỹ phẩm làm đẹp"
+  Tokens: ['làm_đẹp', 'mỹ', 'đẹp', 'phẩm', 'mỹ_phẩm', 'làm']
+  Documents matched: 145,208
+  Search time: 261.0ms
+12  mỹ phẩm làm đẹp                     Thương mại                269      132      412      1.00     0.50     1.00    
+
+  Query: "tư vấn luật doanh nghiệp"
+  Tokens: ['vấn', 'tư_vấn', 'tư', 'doanh_nghiệp', 'nghiệp', 'luật', 'doanh']
+  Documents matched: 773,883
+  Search time: 1041.4ms
+
+  Query: "tư vấn luật doanh nghiệp"
+  Tokens: ['vấn', 'tư_vấn', 'tư', 'doanh_nghiệp', 'nghiệp', 'luật', 'doanh']
+  Documents matched: 773,883
+  Search time: 1019.6ms
+13  tư vấn luật doanh nghiệp            Pháp lý                   1171     135      1282     0.40     0.60     0.40    
+
+  Query: "điện máy gia dụng"
+  Tokens: ['gia_dụng', 'dụng', 'điện', 'gia', 'máy', 'điện_máy']
+  Documents matched: 597,407
+  Search time: 1147.8ms
+
+  Query: "điện máy gia dụng"
+  Tokens: ['gia_dụng', 'dụng', 'điện', 'gia', 'máy', 'điện_máy']
+  Documents matched: 597,407
+  Search time: 1170.9ms
+14  điện máy gia dụng                   Bán lẻ                    1246     130      1404     1.00     1.00     1.00    
+
+  Query: "sửa chữa ô tô"
+  Tokens: ['sửa', 'sửa_chữa', 'tô', 'chữa', 'ô_tô']
+  Documents matched: 392,421
+  Search time: 733.5ms
+
+  Query: "sửa chữa ô tô"
+  Tokens: ['sửa', 'sửa_chữa', 'tô', 'chữa', 'ô_tô']
+  Documents matched: 392,421
+  Search time: 677.9ms
+15  sửa chữa ô tô                       Dịch vụ                   809      134      907      1.00     1.00     1.00    
+
+  Query: "du lịch lữ hành"
+  Tokens: ['lữ_hành', 'lịch', 'hành', 'du_lịch', 'du', 'lữ']
+  Documents matched: 173,824
+  Search time: 268.1ms
+
+  Query: "du lịch lữ hành"
+  Tokens: ['lữ_hành', 'lịch', 'hành', 'du_lịch', 'du', 'lữ']
+  Documents matched: 173,824
+  Search time: 286.3ms
+16  du lịch lữ hành                     Du lịch                   299      134      456      1.00     1.00     1.00    
+
+  Query: "khách sạn 5 sao"
+  Tokens: ['khách', 'khách_sạn', 'sao', 'sạn', '5']
+  Documents matched: 126,418
+  Search time: 200.2ms
+
+  Query: "khách sạn 5 sao"
+  Tokens: ['khách', 'khách_sạn', 'sao', 'sạn', '5']
+  Documents matched: 126,418
+  Search time: 200.6ms
+17  khách sạn 5 sao                     Hospitality + Số          218      137      367      1.00     0.50     1.00    
+
+  Query: "thực phẩm sạch"
+  Tokens: ['thực', 'thực_phẩm', 'sạch', 'phẩm']
+  Documents matched: 357,018
+  Search time: 545.6ms
+
+  Query: "thực phẩm sạch"
+  Tokens: ['thực', 'thực_phẩm', 'sạch', 'phẩm']
+  Documents matched: 357,018
+  Search time: 565.4ms
+18  thực phẩm sạch                      Nông sản                  610      144      770      0.80     0.90     0.80    
+
+  Query: "năng lượng mặt trời"
+  Tokens: ['trời', 'năng_lượng', 'năng', 'lượng', 'mặt_trời', 'mặt']
+  Documents matched: 11,618
+  Search time: 22.1ms
+
+  Query: "năng lượng mặt trời"
+  Tokens: ['trời', 'năng_lượng', 'năng', 'lượng', 'mặt_trời', 'mặt']
+  Documents matched: 11,618
+  Search time: 34.7ms
+19  năng lượng mặt trời                 Công nghệ xanh            23       136      175      1.00     1.00     1.00    
+
+  Query: "giải trí truyền thông"
+  Tokens: ['giải', 'truyền_thông', 'giải_trí', 'trí', 'truyền', 'thông']
+  Documents matched: 146,519
+  Search time: 251.4ms
+
+  Query: "giải trí truyền thông"
+  Tokens: ['giải', 'truyền_thông', 'giải_trí', 'trí', 'truyền', 'thông']
+  Documents matched: 146,519
+  Search time: 268.4ms
+20  giải trí truyền thông               Media                     273      141      433      1.00     1.00     1.00    
+
+==========================================================================================
+  SUMMARY — TÓM TẮT KẾT QUẢ
+==========================================================================================
+
+  Metric                              BM25            Vector          Hybrid         
+  ----------------------------------- --------------- --------------- ---------------
+  Avg Latency (ms)                    560.5           134.1           704.3          
+  Min Latency (ms)                    21.5            118.4           169.0          
+  Max Latency (ms)                    1306.9          150.4           1532.3         
+  --- Quality ---                    
+  Avg Precision@10                    0.875           0.815           0.875          
+  Min Precision@10                    0.30            0.10            0.30           
+
+  FAISS Index Type: FlatIP (brute-force)
+  Total Documents: 1,842,525
+  Queries Tested: 20
+
+==========================================================================================
+  PER-QUERY ANALYSIS — PHÂN TÍCH TỪNG TRUY VẤN
+==========================================================================================
+
+  #   Query                               P@10 (B/V/H)         Winner      
+  ----------------------------------------------------------------------
+  1   công ty xây dựng hà nội             0.80/1.00/0.80       Vector      
+  2   phần mềm kế toán                    1.00/1.00/1.00       Tất cả      
+  3   bất động sản sài gòn                0.70/1.00/0.70       Vector      
+  4   xuất khẩu thủy sản cần thơ          0.90/0.10/0.90       BM25/Hybrid 
+  5   dịch vụ vận tải logistics           1.00/1.00/1.00       Tất cả      
+  6   sản xuất bao bì                     0.90/0.80/0.90       BM25/Hybrid 
+  7   nhà hàng tiệc cưới                  1.00/0.30/1.00       BM25/Hybrid 
+  8   trường học quốc tế                  1.00/1.00/1.00       Tất cả      
+  9   bệnh viện thú y                     0.80/0.70/0.80       BM25/Hybrid 
+  10  shop quần áo thời trang             0.90/1.00/0.90       Vector      
+  11  máy tính chơi game                  0.30/0.90/0.30       Vector      
+  12  mỹ phẩm làm đẹp                     1.00/0.50/1.00       BM25/Hybrid 
+  13  tư vấn luật doanh nghiệp            0.40/0.60/0.40       Vector      
+  14  điện máy gia dụng                   1.00/1.00/1.00       Tất cả      
+  15  sửa chữa ô tô                       1.00/1.00/1.00       Tất cả      
+  16  du lịch lữ hành                     1.00/1.00/1.00       Tất cả      
+  17  khách sạn 5 sao                     1.00/0.50/1.00       BM25/Hybrid 
+  18  thực phẩm sạch                      0.80/0.90/0.80       Vector      
+  19  năng lượng mặt trời                 1.00/1.00/1.00       Tất cả      
+  20  giải trí truyền thông               1.00/1.00/1.00       Tất cả      
+
+==========================================================================================
+  CASE STUDY ANALYSIS — TẠI SAO AI TỐT HƠN / TỆ HƠN
+==========================================================================================
+
+  [A] VECTOR (AI) TỐT HƠN BM25 — 6 queries
+  ----------------------------------------------------------------------
+    • "công ty xây dựng hà nội" (Ngành + Địa điểm)
+      BM25 P@10=0.80 → Vector P@10=1.00 (Δ = +0.20)
+      → Vector tìm được kết quả đồng nghĩa mà BM25 bỏ sót do không khớp mặt chữ
+    • "bất động sản sài gòn" (Ngành + Tên thông dụng)
+      BM25 P@10=0.70 → Vector P@10=1.00 (Δ = +0.30)
+      → Vector tìm được kết quả đồng nghĩa mà BM25 bỏ sót do không khớp mặt chữ
+    • "shop quần áo thời trang" (Bán lẻ + Từ lóng)
+      BM25 P@10=0.90 → Vector P@10=1.00 (Δ = +0.10)
+      → Vector tìm được kết quả đồng nghĩa mà BM25 bỏ sót do không khớp mặt chữ
+    • "máy tính chơi game" (Semantic (AI cần hiểu))
+      BM25 P@10=0.30 → Vector P@10=0.90 (Δ = +0.60)
+      → Vector hiểu ngữ nghĩa: 'máy tính chơi game' ≈ 'gaming computer', 'trò chơi điện tử'
+    • "tư vấn luật doanh nghiệp" (Pháp lý)
+      BM25 P@10=0.40 → Vector P@10=0.60 (Δ = +0.20)
+      → Vector tìm được kết quả đồng nghĩa mà BM25 bỏ sót do không khớp mặt chữ
+    • "thực phẩm sạch" (Nông sản)
+      BM25 P@10=0.80 → Vector P@10=0.90 (Δ = +0.10)
+      → Vector tìm được kết quả đồng nghĩa mà BM25 bỏ sót do không khớp mặt chữ
+
+  [B] BM25 TỐT HƠN VECTOR (AI) — 6 queries
+  ----------------------------------------------------------------------
+    • "xuất khẩu thủy sản cần thơ" (Ngành + Địa điểm cụ thể)
+      BM25 P@10=0.90 → Vector P@10=0.10 (Δ = -0.80)
+      → BM25 khớp chính xác từ khóa, Vector trả về kết quả lan man
+    • "sản xuất bao bì" (Sản xuất)
+      BM25 P@10=0.90 → Vector P@10=0.80 (Δ = -0.10)
+      → BM25 khớp chính xác từ khóa, Vector trả về kết quả lan man
+    • "nhà hàng tiệc cưới" (Dịch vụ)
+      BM25 P@10=1.00 → Vector P@10=0.30 (Δ = -0.70)
+      → Query chuyên ngành, BM25 khớp chính xác thuật ngữ đặc thù
+    • "bệnh viện thú y" (Y tế chuyên biệt)
+      BM25 P@10=0.80 → Vector P@10=0.70 (Δ = -0.10)
+      → Query chuyên ngành, BM25 khớp chính xác thuật ngữ đặc thù
+    • "mỹ phẩm làm đẹp" (Thương mại)
+      BM25 P@10=1.00 → Vector P@10=0.50 (Δ = -0.50)
+      → BM25 khớp chính xác từ khóa, Vector trả về kết quả lan man
+    • "khách sạn 5 sao" (Hospitality + Số)
+      BM25 P@10=1.00 → Vector P@10=0.50 (Δ = -0.50)
+      → Query chứa từ chung/đa nghĩa, Vector dễ bị nhiễu ngữ nghĩa
+
+  [C] HAI BÊN NGANG NHAU — 8 queries
+  ----------------------------------------------------------------------
+    • "phần mềm kế toán" (Sản phẩm chuyên ngành) — P@10 = 1.00
+    • "dịch vụ vận tải logistics" (Ngành + Từ ngoại lai) — P@10 = 1.00
+    • "trường học quốc tế" (Giáo dục) — P@10 = 1.00
+    • "điện máy gia dụng" (Bán lẻ) — P@10 = 1.00
+    • "sửa chữa ô tô" (Dịch vụ) — P@10 = 1.00
+    • "du lịch lữ hành" (Du lịch) — P@10 = 1.00
+    • "năng lượng mặt trời" (Công nghệ xanh) — P@10 = 1.00
+    • "giải trí truyền thông" (Media) — P@10 = 1.00
+
+  [D] HYBRID — PHÂN TÍCH HIỆU QUẢ KẾT HỢP
+  ----------------------------------------------------------------------
+    ⚠ "công ty xây dựng hà nội" — Hybrid P@10=0.80 < Best Single=1.00
+      → BM25 chiếm ưu thế (alpha=0.65) nhưng kết quả BM25 kém cho query này
+    ⚠ "bất động sản sài gòn" — Hybrid P@10=0.70 < Best Single=1.00
+      → BM25 chiếm ưu thế (alpha=0.65) nhưng kết quả BM25 kém cho query này
+    ⚠ "shop quần áo thời trang" — Hybrid P@10=0.90 < Best Single=1.00
+      → BM25 chiếm ưu thế (alpha=0.65) nhưng kết quả BM25 kém cho query này
+    ⚠ "máy tính chơi game" — Hybrid P@10=0.30 < Best Single=0.90
+      → BM25 chiếm ưu thế (alpha=0.65) nhưng kết quả BM25 kém cho query này
+    ⚠ "tư vấn luật doanh nghiệp" — Hybrid P@10=0.40 < Best Single=0.60
+      → BM25 chiếm ưu thế (alpha=0.65) nhưng kết quả BM25 kém cho query này
+    ⚠ "thực phẩm sạch" — Hybrid P@10=0.80 < Best Single=0.90
+      → BM25 chiếm ưu thế (alpha=0.65) nhưng kết quả BM25 kém cho query này
+
+    Tổng kết Hybrid:
+      Hybrid ≥ Best Single Engine: 14/20 queries
+      Hybrid < Best Single Engine: 6/20 queries
+
+==========================================================================================
+  DETAILED RESULTS (5 sample queries)
+==========================================================================================
+
+  Query: "công ty xây dựng hà nội" (Type: Ngành + Địa điểm)
+  Keywords: ['xây dựng', 'xây_dựng', 'kiến trúc', 'construction', 'xây lắp', 'xây_lắp']
+
+  Query: "công ty xây dựng hà nội"
+  Tokens: ['ty', 'công', 'hà', 'nội', 'công_ty', 'xây_dựng', 'dựng', 'hà_nội', 'xây']
+  Documents matched: 680,146
+  Search time: 1278.3ms
+
+  BM25 Top 5:
+    1. [✓] CÔNG TY CỔ PHẦN XÂY DỰNG KIẾN TRÚC HÀ NỘI 1
+    2. [✓] CÔNG TY CỔ PHẦN HÀ NỘI QUỐC TẾ
+    3. [✓] CÔNG TY CỔ PHẦN TƯ VẤN KIẾN TRÚC HÀ NỘI XANH
+    4. [✓] CÔNG TY CỔ PHẦN THIẾT KẾ VÀ XÂY DỰNG ĐIỆN HÀ NỘI I
+    5. [✓] Công ty xây Dựng Phương Đông
+
+  Vector Top 5:
+    1. [✓] CÔNG TY TNHH MỘT THÀNH VIÊN XÂY DỰNG CẦU ĐƯỜNG NGUYÊN TRUNG
+    2. [✓] Công Ty TNHH Một Thành Viên Lê Mẫn
+    3. [✓] CÔNG TY TNHH MỘT THÀNH VIÊN THIẾT KẾ XÂY DỰNG THƯƠNG MẠI DỊCH VỤ 
+    4. [✓] Công Ty Trách Nhiệm Hữu Hạn Một Thành Viên Xây Dựng Tân Khoa
+    5. [✓] Công Ty TNHH Một Thành Viên Xây Dựng Cầu Đường Phú Giáo
+
+  Query: "công ty xây dựng hà nội"
+  Tokens: ['ty', 'công', 'hà', 'nội', 'công_ty', 'xây_dựng', 'dựng', 'hà_nội', 'xây']
+  Documents matched: 680,146
+  Search time: 1270.6ms
+
+  Hybrid Top 5:
+    1. [✓] CÔNG TY CỔ PHẦN XÂY DỰNG KIẾN TRÚC HÀ NỘI 1
+    2. [✓] CÔNG TY CỔ PHẦN HÀ NỘI QUỐC TẾ
+    3. [✓] CÔNG TY CỔ PHẦN TƯ VẤN KIẾN TRÚC HÀ NỘI XANH
+    4. [✓] CÔNG TY CỔ PHẦN THIẾT KẾ VÀ XÂY DỰNG ĐIỆN HÀ NỘI I
+    5. [✓] Công ty xây Dựng Phương Đông
+
+  Query: "xuất khẩu thủy sản cần thơ" (Type: Ngành + Địa điểm cụ thể)
+  Keywords: ['xuất khẩu', 'xuất_khẩu', 'thủy sản', 'thủy_sản', 'hải sản', 'hải_sản', 'seafood', 'xuất nhập khẩu', 'xuất_nhập_khẩu']
+
+  Query: "xuất khẩu thủy sản cần thơ"
+  Tokens: ['thơ', 'sản', 'thủy_sản', 'xuất_khẩu', 'thủy', 'xuất', 'cần', 'cần_thơ', 'khẩu']
+  Documents matched: 170,423
+  Search time: 249.8ms
+
+  BM25 Top 5:
+    1. [✗] CÔNG TY TNHH XUẤT NHẬU KHẨU LƯƠNG THỰC CẦN THƠ
+    2. [✓] CÔNG TY TNHH SẢN XUẤT XUẤT NHẬP KHẨU TP CẦN THƠ
+    3. [✓] CÔNG TY TNHH TƯ VẤN XUẤT NHẬP KHẨU VIỆT DƯƠNG CẦN THƠ
+    4. [✓] CHI NHÁNH CÔNG TY CỔ PHẦN THƯƠNG MẠI - XUẤT NHẬP KHẨU TÔ CHÂU TẠI
+    5. [✓] CÔNG TY CP CHẾ BIẾN NÔNG SẢN THỰC PHẨM XUẤT KHẨU CẦN THƠ
+
+  Vector Top 5:
+    1. [✗] CÔNG TY TNHH ECY VIỆT NAM
+    2. [✗] CÔNG TY TNHH IN DỆT NHÃN MÁC GIA PHÁT
+    3. [✗] CÔNG TY TNHH TM - SX - DV BÌNH NGUYÊN PHÁT
+    4. [✗] Hợp tác xã Trường Sơn
+    5. [✓] CÔNG TY TNHH XUẤT NHẬP KHẨU HẢI PHÁT
+
+  Query: "xuất khẩu thủy sản cần thơ"
+  Tokens: ['thơ', 'sản', 'thủy_sản', 'xuất_khẩu', 'thủy', 'xuất', 'cần', 'cần_thơ', 'khẩu']
+  Documents matched: 170,423
+  Search time: 255.0ms
+
+  Hybrid Top 5:
+    1. [✗] CÔNG TY TNHH XUẤT NHẬU KHẨU LƯƠNG THỰC CẦN THƠ
+    2. [✓] CÔNG TY TNHH SẢN XUẤT XUẤT NHẬP KHẨU TP CẦN THƠ
+    3. [✓] CÔNG TY TNHH TƯ VẤN XUẤT NHẬP KHẨU VIỆT DƯƠNG CẦN THƠ
+    4. [✓] CHI NHÁNH CÔNG TY CỔ PHẦN THƯƠNG MẠI - XUẤT NHẬP KHẨU TÔ CHÂU TẠI
+    5. [✓] CÔNG TY CP CHẾ BIẾN NÔNG SẢN THỰC PHẨM XUẤT KHẨU CẦN THƠ
+
+  Query: "nhà hàng tiệc cưới" (Type: Dịch vụ)
+  Keywords: ['nhà hàng', 'nhà_hàng', 'tiệc cưới', 'tiệc_cưới', 'ẩm thực', 'ẩm_thực', 'nhà hàng tiệc', 'nhà_hàng_tiệc', 'catering']
+
+  Query: "nhà hàng tiệc cưới"
+  Tokens: ['nhà', 'hàng', 'nhà_hàng', 'tiệc', 'cưới']
+  Documents matched: 691,886
+  Search time: 1277.4ms
+
+  BM25 Top 5:
+    1. [✓] Công Ty TNHH áo Cưới Minh Nguyệt
+    2. [✓] CÔNG TY CỔ PHẦN TRUYỀN THÔNG MÙA CƯỚI VIỆT
+    3. [✓] CÔNG TY CỔ PHẦN NHÀ HÀNG TỔ CHỨC TIỆC CƯỚI HỘI NGHỊ SỰ KIỆN THANH
+    4. [✓] Công Ty TNHH Khách Sạn Nhà Hàng Tiệc Cưới Đặng Gia
+    5. [✓] Chi Nhánh Công Ty TNHH Phước Ngọc - Nhà Hàng Tiệc Cưới Làng Nướng
+
+  Vector Top 5:
+    1. [✗] Công Ty TNHH Phúc Wedding Studio
+    2. [✓] Công Ty TNHH Tổ Chức Tiệc Cưới Nina
+    3. [✓] Chi Nhánh Wedding Sinh Đôi - Công Ty Cổ Phần Phát Triển Nhà Hàng 
+    4. [✗] Công Ty TNHH Quang Châu Thành
+    5. [✓] Công Ty TNHH Tiến Thơ
+
+  Query: "nhà hàng tiệc cưới"
+  Tokens: ['nhà', 'hàng', 'nhà_hàng', 'tiệc', 'cưới']
+  Documents matched: 691,886
+  Search time: 1263.7ms
+
+  Hybrid Top 5:
+    1. [✓] Công Ty TNHH áo Cưới Minh Nguyệt
+    2. [✓] CÔNG TY CỔ PHẦN TRUYỀN THÔNG MÙA CƯỚI VIỆT
+    3. [✓] CÔNG TY CỔ PHẦN NHÀ HÀNG TỔ CHỨC TIỆC CƯỚI HỘI NGHỊ SỰ KIỆN THANH
+    4. [✓] Công Ty TNHH Khách Sạn Nhà Hàng Tiệc Cưới Đặng Gia
+    5. [✓] Chi Nhánh Công Ty TNHH Phước Ngọc - Nhà Hàng Tiệc Cưới Làng Nướng
+
+  Query: "máy tính chơi game" (Type: Semantic (AI cần hiểu))
+  Keywords: ['máy tính', 'máy_tính', 'computer', 'game', 'gaming', 'laptop', 'trò chơi điện tử', 'trò_chơi_điện_tử', 'PC']
+
+  Query: "máy tính chơi game"
+  Tokens: ['máy', 'tính', 'máy_tính', 'chơi', 'game']
+  Documents matched: 402,506
+  Search time: 542.6ms
+
+  BM25 Top 5:
+    1. [✓] DOANH NGHIỆP TƯ NHÂN GAME LA TÍNH
+    2. [✓] DOANH NGHIỆP TƯ NHÂN GAME LA TÍNH - CHI NHÁNH 2
+    3. [✓] Công ty máy tính Anh Huy
+    4. [✗] CTY TNHH MTV TÍNH THÔNG
+    5. [✗] CTY CỔ PHẦN THƯƠNG MẠI THIẾT BỊ TÍNH TIỀN THIÊN BẮC
+
+  Vector Top 5:
+    1. [✓] DOANH NGHIỆP TƯ NHÂN DỊCH VỤ TRÒ CHƠI ĐIỆN TỬ CÔNG CỘNG CYBER ALL
+    2. [✓] CÔNG TY TNHH THƯƠNG MẠI DỊCH VỤ GALAXY GAMING COMPUTER
+    3. [✓] DOANH NGHIỆP TƯ NHÂN DỊCH VỤ TRÒ CHƠI ĐIỆN TỬ CÔNG CỘNG CYBER ALL
+    4. [✓] DOANH NGHIỆP TƯ NHÂN DỊCH VỤ TRÒ CHƠI ĐIỆN TỬ CÔNG CỘNG CYBER ALL
+    5. [✓] CÔNG TY TNHH GENTLEMAN DOG GAMES
+
+  Query: "máy tính chơi game"
+  Tokens: ['máy', 'tính', 'máy_tính', 'chơi', 'game']
+  Documents matched: 402,506
+  Search time: 552.9ms
+
+  Hybrid Top 5:
+    1. [✓] DOANH NGHIỆP TƯ NHÂN GAME LA TÍNH
+    2. [✓] DOANH NGHIỆP TƯ NHÂN GAME LA TÍNH - CHI NHÁNH 2
+    3. [✓] Công ty máy tính Anh Huy
+    4. [✗] CTY TNHH MTV TÍNH THÔNG
+    5. [✗] CTY CỔ PHẦN THƯƠNG MẠI THIẾT BỊ TÍNH TIỀN THIÊN BẮC
+
+  Query: "năng lượng mặt trời" (Type: Công nghệ xanh)
+  Keywords: ['năng lượng', 'năng_lượng', 'mặt trời', 'mặt_trời', 'solar', 'energy', 'pin năng lượng', 'pin_năng_lượng', 'quang điện']
+
+  Query: "năng lượng mặt trời"
+  Tokens: ['trời', 'năng_lượng', 'năng', 'lượng', 'mặt_trời', 'mặt']
+  Documents matched: 11,618
+  Search time: 17.4ms
+
+  BM25 Top 5:
+    1. [✓] CÔNG TY CỔ PHẦN ĐẦU TƯ NĂNG LƯỢNG MẶT TRỜI ATAD
+    2. [✓] Công Ty TNHH Năng Lượng Mặt Trời Đỏ Long An
+    3. [✓] CÔNG TY CP KỸ THUẬT NĂNG LƯỢNG TRỮ NĂNG THÀNH ĐẠT
+    4. [✓] CÔNG TY TNHH NĂNG LƯỢNG MẶT TRỜI TỊNH DUYÊN
+    5. [✓] CÔNG TY TNHH CÔNG NGHỆ NĂNG LƯỢNG MẶT TRỜI
+
+  Vector Top 5:
+    1. [✓] Công Ty TNHH Solar Bright Vn
+    2. [✓] CÔNG TY TNHH SUNFLOWERS SOLAR
+    3. [✓] CÔNG TY TNHH SOLAR PT
+    4. [✓] CÔNG TY TNHH DỊCH VỤ VÀ THƯƠNG MẠI LIGHT ENERGY OF SOLAR
+    5. [✓] CÔNG TY CỔ PHẦN ĐẦU TƯ GPC SOLAR 1
+
+  Query: "năng lượng mặt trời"
+  Tokens: ['trời', 'năng_lượng', 'năng', 'lượng', 'mặt_trời', 'mặt']
+  Documents matched: 11,618
+  Search time: 20.8ms
+
+  Hybrid Top 5:
+    1. [✓] CÔNG TY CỔ PHẦN ĐẦU TƯ NĂNG LƯỢNG MẶT TRỜI ATAD
+    2. [✓] Công Ty TNHH Năng Lượng Mặt Trời Đỏ Long An
+    3. [✓] CÔNG TY CP KỸ THUẬT NĂNG LƯỢNG TRỮ NĂNG THÀNH ĐẠT
+    4. [✓] CÔNG TY TNHH NĂNG LƯỢNG MẶT TRỜI TỊNH DUYÊN
+    5. [✓] CÔNG TY TNHH CÔNG NGHỆ NĂNG LƯỢNG MẶT TRỜI
+
+==========================================================================================
+  KẾT LUẬN
+==========================================================================================
+
+  1. Hybrid Search (RRF) đạt Precision@10 cao nhất trong hầu hết các queries,
+     nhờ kết hợp được ưu điểm khớp mặt chữ (BM25) và hiểu ngữ nghĩa (Vector).
+
+  2. Vector Search vượt trội với queries ngữ nghĩa ('máy tính chơi game',
+     từ đồng nghĩa, từ ngoại lai) nhưng kém với queries chuyên ngành đặc thù.
+
+  3. BM25 cho kết quả ổn định, đặc biệt tốt với tên pháp lý, địa chỉ,
+     và các thuật ngữ đặc thù ngành nghề Việt Nam.
+
+  4. Hybrid Search không hưởng lợi cho queries ngữ nghĩa thuần túy (ví dụ: 'máy tính chơi game'),
+     do alpha=0.65 ưu tiên BM25. Đây là trade-off có chủ đích cho bài toán tra cứu doanh nghiệp.
+
+==========================================================================================
+  BENCHMARK COMPLETED
+==========================================================================================

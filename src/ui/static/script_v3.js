@@ -79,7 +79,7 @@ async function performSearch() {
             // Apply threshold filter (e.g. 25% minimum relevance)
             const rawResults = data.results;
             const tempMaxScore = rawResults[0].score > 0 ? rawResults[0].score : 1;
-            const threshold = 15; // Ngưỡng 15%
+            const threshold = 0; // Bỏ ngưỡng 15% để mở rộng giới hạn đầu ra tối đa
             
             const validResults = rawResults.filter(r => {
                 const pct = Math.round((r.score / tempMaxScore) * 100);
@@ -167,8 +167,9 @@ function renderResults(data) {
     const modeLabel = modeLabels[data.mode] || data.mode;
 
     // Summary
+    const displayCount = data.results ? data.results.length : 0;
     document.getElementById('results-summary').innerHTML =
-        `Tìm thấy <strong>${data.total}</strong> kết quả (hiển thị trang). Phản hồi trong <strong>${data.time_ms}ms</strong> <span class="mode-badge">${modeLabel}</span>`;
+        `Khoảng <strong>${fmt(data.total)}</strong> kết quả (hiển thị ${displayCount}). Phản hồi trong <strong>${data.time_ms}ms</strong> <span class="mode-badge">${modeLabel}</span>`;
 
     loadMore();
     document.getElementById('results-section').style.display = 'block';

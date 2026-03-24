@@ -299,8 +299,12 @@ class BM25Searcher:
                 continue
             
             # Truncate postings nếu quá lớn (tối ưu tốc độ)
-            if len(postings) > MAX_POSTINGS_PER_TERM:
-                postings = postings[:MAX_POSTINGS_PER_TERM]
+            MAX_MATCHES = 400000
+            if len(postings) > MAX_MATCHES:
+                postings = postings[:MAX_MATCHES]
+            
+            if not postings:
+                continue
             
             # Hot loop - Optimized: Inlined compute_tf_component
             for doc_id, tf in postings:
@@ -313,11 +317,17 @@ class BM25Searcher:
                 doc_term_matches[doc_id] += 1
         
         # Lọc ra danh sách các valid tokens thực sự được đưa vào chấm điểm
-        valid_tokens = [t for t in query_tokens if t in self.term_dict and self.term_dict[t][0] <= max_df and self.compute_idf(t) > 0]
-        num_query_tokens = len(valid_tokens)
+        valid_tokens = []
+        for t in query_tokens:
+            if t not in self.term_dict:
+                continue
+            df = self.term_dict[t][0]
+            if df > max_df and len(query_tokens) > 2:
+                continue
+            if self.compute_idf(t) > 0:
+                valid_tokens.append(t)
         
-        # Áp dụng Coordination Boost mạnh để loại bỏ các kết quả "lạc đề" chỉ khớp 1 từ
-        # Đã FIX: num_query_tokens giờ đây chỉ đếm các từ không bị skip.
+        num_query_tokens = len(valid_tokens)
         if num_query_tokens > 0:
             for doc_id in doc_scores:
                 n_matched = doc_term_matches[doc_id]
@@ -340,25 +350,35 @@ class BM25Searcher:
         print(f"  Tokens: {query_tokens}")
         if skipped_terms:
             print(f"  Skipped (too common): {', '.join(skipped_terms)}")
-        print(f"  Documents matched: {len(doc_scores):,d}")
+        self.last_match_count = len(doc_scores)
+        print(f"  Documents matched: {self.last_match_count:,}")
         print(f"  Search time: {search_time*1000:.1f}ms")
         
         return results
     
     def _tokenize_query(self, query: str) -> List[str]:
         """
-        Tokenize query text.
-        Tự động sử dụng PyVi để tách từ tiếng Việt nếu có thể.
+        Tokenize query text với cơ chế chống chế độ ngữ cảnh của PyVi.
+        PyVi sẽ tokenize "CÔNG NGHỆ VIBETEKS" khác với "công nghệ vibeteks".
+        Để tối đa Recall, ta tổng hợp các loại hình token.
         """
-        processed_query = query.lower()
+        import re
+        query_clean = re.sub(r'[^\w\s_]', ' ', query)
         
-        # Nếu có PyVi, thực hiện tách từ tự động (vd: "công nghệ" -> "công_nghệ")
         if ViTokenizer:
-            processed_query = ViTokenizer.tokenize(processed_query)
+            q_lower = ViTokenizer.tokenize(query_clean.lower())
+            q_upper = ViTokenizer.tokenize(query_clean.upper()).lower()
+            q_uni = query_clean.lower().replace("_", " ")
+        else:
+            q_lower = query_clean.lower()
+            q_upper = ""
+            q_uni = ""
             
-        tokens = processed_query.split()
+        combined = f"{q_lower} {q_upper} {q_uni}"
+        tokens = combined.split()
+        
         result = []
-        for token in tokens:
+        for token in set(tokens):
             if len(token) <= 1 and not token.isdigit():
                 continue
             if all(c in '.,;:!?()-_/\\|@#$%^&*+=<>{}[]"\'~`' for c in token):

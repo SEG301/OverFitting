@@ -1,0 +1,20 @@
+Rank: 0 Score: 0.78 Name: Công Ty Cổ Phần Phát Triển Bền Vững Nông Thôn Quảng Trị
+Rank: 1 Score: 0.69 Name: CÔNG TY TNHH DOANH NGHIỆP XÃ HỘI FERMION8
+Rank: 2 Score: 0.68 Name: CÔNG TY TNHH MINH PHÁT BẮC GIANG
+Rank: 3 Score: 0.25 Name: CÔNG TY TNHH ĐẦU TƯ VÀ PHÁT TRIỂN KỲ LINH THANH HOÁ
+Rank: 4 Score: 0.23 Name: CÔNG TY TNHH THƯƠNG MẠI DỊCH VỤ NHẤT MINH TÂM
+Rank: 5 Score: 0.2 Name: CÔNG TY CP XÂY DỰNG CÔNG NGHIỆP BẮC GIANG
+Rank: 6 Score: 0.2 Name: Công Ty Cổ Phần Đầu Tư Và Phát Triển Phong An
+Rank: 7 Score: 0.19 Name: CÔNG TY TNHH VIỆT NAM BEAUTIFUL
+Rank: 8 Score: 0.18 Name: CÔNG TY TNHH DOANH NGHIỆP XÃ HỘI UKAV
+Rank: 9 Score: 0.17 Name: CÔNG TY TNHH TỔNG HỢP FY VIỆT NAM
+Rank: 10 Score: 0.17 Name: CÔNG TY TNHH TM XD NĂNG LƯỢNG PHÚC HƯNG
+Rank: 11 Score: 0.15 Name: CÔNG TY TNHH DOANH NGHIỆP XÃ HỘI HỖ TRỢ PHÁT TRIỂN CÁC HOẠT ĐỘNG PHÒNG CHỐNG MÙ LÒA
+Rank: 12 Score: 0.15 Name: CÔNG TY TNHH HỢP TÁC QUỐC TẾ ASEAN
+Rank: 13 Score: 0.1 Name: CÔNG TY TNHH RABBIT SUN
+Rank: 14 Score: 0.1 Name: CÔNG TY TNHH KHOA HỌC CÔNG NGHỆ GIÁO DỤC KIẾN TẠO TRẺ
+Rank: 15 Score: 0.1 Name: CÔNG TY TNHH MỘT THÀNH VIÊN DOANH NGHIỆP XÃ HỘI TƯƠNG LAI XANH
+Rank: 16 Score: 0.1 Name: Công Ty TNHH Gia Khánh Star
+Rank: 17 Score: 0.09 Name: CÔNG TY CỔ PHẦN XÂY DỰNG MẮT NGỌC
+Rank: 18 Score: 0.09 Name: Công Ty TNHH Vietjet Tours
+Rank: 19 Score: 0.09 Name: CÔNG TY TNHH ĐẦU TƯ PHÁT TRIỂN HƯNG THỊNH
