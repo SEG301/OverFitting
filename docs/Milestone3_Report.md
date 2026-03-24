@@ -101,7 +101,7 @@ flowchart TD
 | Kích thước embedding | 384 chiều                                 |
 | Kích thước model     | ~120MB                                     |
 | Tốc độ inference     | Nhanh (MiniLM architecture)                |
-| Device               | Tự động phát hiện CUDA/CPU              |
+| Device                  | Tự động phát hiện CUDA/CPU            |
 
 **Lý do chọn**: Model này cân bằng tốt giữa chất lượng embedding tiếng Việt và tốc độ. So với PhoBERT (chỉ hỗ trợ tiếng Việt), model đa ngôn ngữ này xử lý tốt cả tên viết tắt tiếng Anh phổ biến trong tên doanh nghiệp (TNHH, JSC, Corp...).
 
@@ -171,12 +171,12 @@ flowchart TD
 
 **Chi tiết kỹ thuật quan trọng**:
 
-| Tham số         | Giá trị      | Lý do                                          |
-| ---------------- | -------------- | ----------------------------------------------- |
-| `CHUNK_SIZE`   | 50,000 docs    | Cân bằng tốc độ và RAM                    |
-| `batch_size`   | 128            | Tận dụng tối đa VRAM GPU                    |
-| `device`       | auto-detect    | Tự động dùng CUDA nếu có GPU, fallback CPU  |
-| `gc.collect()` | Sau mỗi chunk | Giải phóng Python objects, tránh memory leak |
+| Tham số         | Giá trị      | Lý do                                           |
+| ---------------- | -------------- | ------------------------------------------------ |
+| `CHUNK_SIZE`   | 50,000 docs    | Cân bằng tốc độ và RAM                     |
+| `batch_size`   | 128            | Tận dụng tối đa VRAM GPU                     |
+| `device`       | auto-detect    | Tự động dùng CUDA nếu có GPU, fallback CPU |
+| `gc.collect()` | Sau mỗi chunk | Giải phóng Python objects, tránh memory leak  |
 
 ### 3.5. Search Flow
 
@@ -265,11 +265,11 @@ if q_clean in mst_index:
     return doc # Tra cứu tức thì
 ```
 
-| Thông số           | Giá trị                       |
-| -------------------- | ------------------------------- |
+| Thông số           | Giá trị                             |
+| -------------------- | ------------------------------------- |
 | Thuật toán         | **Hash Map Lookup + File Seek** |
 | Độ phức tạp      | **O(1)**                        |
-| Thời gian thực tế | **< 1ms** (Tức thì)             |
+| Thời gian thực tế | **< 1ms** (Tức thì)           |
 | Độ chính xác     | **100%**                        |
 
 ### 5.2. Exact Match & Substring Boost
@@ -328,6 +328,7 @@ coordination = n_matched / len(valid_tokens)
 **Vấn đề**: Thư viện PyVi tách từ (Word Segmentation) rất nhạy cảm với chữ Hoa/Thường. Ví dụ: "CÔNG NGHỆ" có thể bị tách khác với "công nghệ", dẫn đến BM25 không tìm thấy kết quả nếu index lưu một kiểu và query gõ một kiểu.
 
 **Giải pháp**: Hệ thống sử dụng cơ chế Tokenize đa biến thể, tổng hợp tất cả các cách tách từ có thể:
+
 1. Tokenize chuỗi Chữ Thường (`lower`).
 2. Tokenize chuỗi Chữ Hoa (`upper`) rồi chuyển về chữ thường.
 3. Tokenize từng từ đơn (`unigram`) để bao phủ trường hợp PyVi tách sai cụm từ.
@@ -543,28 +544,28 @@ Ví dụ cho query `"máy tính chơi game"`:
 
 #### 8.1.3. Các chỉ số đánh giá (Metrics)
 
-| Metric | Ký hiệu | Ý nghĩa |
-|---|---|---|
-| **Precision@10** | P@10 | Tỉ lệ kết quả relevant trong Top 10. Ví dụ: P@10 = 0.90 nghĩa là 9/10 kết quả đúng |
+| Metric                 | Ký hiệu | Ý nghĩa                                                                                      |
+| ---------------------- | --------- | ---------------------------------------------------------------------------------------------- |
+| **Precision@10** | P@10      | Tỉ lệ kết quả relevant trong Top 10. Ví dụ: P@10 = 0.90 nghĩa là 9/10 kết quả đúng |
 
 ### 8.2. Bảng Tổng hợp Hiệu năng
 
 #### 8.2.1. So sánh đặc tính (Qualitative)
 
-| Đặc tính                                 | BM25                        | Vector Search | Hybrid (RRF)                 |
+| Đặc tính                              | BM25                        | Vector Search | Hybrid (RRF)                 |
 | ---------------------------------------- | --------------------------- | ------------- | ---------------------------- |
 | **Chính xác Tên pháp lý**     | ⭐⭐⭐⭐⭐                  | ⭐⭐          | ⭐⭐⭐⭐⭐                   |
 | **Tìm đồng nghĩa/ngữ nghĩa** | ⭐                          | ⭐⭐⭐⭐⭐    | ⭐⭐⭐⭐                     |
-| **Tra cứu MST**                   | ❌ (không có trong index) | ❌ (sai 100%) | ✅ (O(1) Hash Index)             |
+| **Tra cứu MST**                   | ❌ (không có trong index) | ❌ (sai 100%) | ✅ (O(1) Hash Index)         |
 | **Tra cứu Địa chỉ dài**       | ⭐⭐⭐ (sau fix CF)         | ⭐⭐          | ⭐⭐⭐⭐⭐ (Substring Boost) |
 
 #### 8.2.2. So sánh định lượng (Quantitative) — 20 queries
 
-| Chỉ số | BM25 | Vector Search | Hybrid (RRF) |
-|---|---|---|---|
-| **Avg Precision@10** | 0.875 | 0.815 | **0.875** |
-| Min Precision@10 | 0.30 | 0.10 | 0.30 |
-| **Avg Latency** | 560ms | 134ms | 704ms |
+| Chỉ số                   | BM25  | Vector Search | Hybrid (RRF)    |
+| -------------------------- | ----- | ------------- | --------------- |
+| **Avg Precision@10** | 0.875 | 0.815         | **0.875** |
+| Min Precision@10           | 0.30  | 0.10          | 0.30            |
+| **Avg Latency**      | 560ms | 134ms         | 704ms           |
 
 > **Ghi chú**: Chạy `python tests/benchmark.py` để tái tạo số liệu. Output tại `tests/benchmark_output.txt`.
 
@@ -572,28 +573,28 @@ Ví dụ cho query `"máy tính chơi game"`:
 
 Bảng dưới đây cho thấy **Precision@10 của từng query** trên cả 3 engine, kèm phân tích engine nào thắng và tại sao:
 
-| # | Query | Loại | P@10 BM25 | P@10 Vec | P@10 Hyb | Winner | Phân tích |
-|---|---|---|---|---|---|---|---|
-| 1 | công ty xây dựng hà nội | Ngành+ĐĐ | 1.00 | 1.00 | 1.00 | Tất cả | Cả 3 engine đều tốt: query phổ biến, nhiều kết quả relevant |
-| 2 | phần mềm kế toán | SP chuyên ngành | 1.00 | 1.00 | 1.00 | Tất cả | Từ khoá đặc trưng, cả BM25 lẫn Vector đều dễ match |
-| 3 | bất động sản sài gòn | Ngành+Tên | 1.00 | 1.00 | 1.00 | Tất cả | Dữ liệu dồi dào, cả 2 phương pháp hoạt động tốt |
-| 4 | xuất khẩu thủy sản cần thơ | Ngành+ĐĐ cụ thể | 1.00 | **0.10** | 1.00 | **BM25/Hybrid** | Vector chỉ 0.10 — embedding không encode tốt địa danh "Cần Thơ" + thuật ngữ chuyên ngành |
-| 5 | dịch vụ vận tải logistics | Ngành+ngoại lai | 1.00 | 1.00 | 1.00 | Tất cả | Từ "logistics" có mặt cả trong tên công ty (BM25) lẫn embedding (Vector) |
-| 6 | sản xuất bao bì | Sản xuất | 1.00 | 0.80 | 1.00 | **BM25/Hybrid** | Vector trả về 2/10 kết quả không liên quan bao bì |
-| 7 | nhà hàng tiệc cưới | Dịch vụ | 1.00 | **0.30** | 1.00 | **BM25/Hybrid** | Vector trả về "wedding studio", "Quang Châu Thành" — semantic quá rộng, thiếu chính xác |
-| 8 | trường học quốc tế | Giáo dục | 1.00 | 1.00 | 1.00 | Tất cả | Cả 2 phương pháp hoạt động tốt |
-| 9 | bệnh viện thú y | Y tế chuyên biệt | 1.00 | **0.70** | 1.00 | **BM25/Hybrid** | "Thú y" là thuật ngữ chuyên ngành hẹp, Vector thiếu chính xác |
-| 10 | shop quần áo thời trang | Bán lẻ | 1.00 | 1.00 | 1.00 | Tất cả | Query phổ biến |
-| 11 | máy tính chơi game | **Semantic** | **0.30** | **0.90** | **0.40** | **Vector** | **Case study**: BM25 match "chơi" → "đi chơi", "golf". Vector hiểu "gaming computer" |
-| 12 | mỹ phẩm làm đẹp | Thương mại | 1.00 | **0.50** | 1.00 | **BM25/Hybrid** | Vector trả kết quả beauty rộng, BM25 chính xác hơn |
-| 13 | tư vấn luật doanh nghiệp | Pháp lý | 1.00 | **0.60** | 1.00 | **BM25/Hybrid** | Vector trả về công ty tư vấn chung, thiếu "luật" |
-| 14 | điện máy gia dụng | Bán lẻ | 1.00 | 1.00 | 1.00 | Tất cả | Cả 2 phương pháp tốt |
-| 15 | sửa chữa ô tô | Dịch vụ | 1.00 | 1.00 | 1.00 | Tất cả | Cả 2 phương pháp tốt |
-| 16 | du lịch lữ hành | Du lịch | 1.00 | 1.00 | 1.00 | Tất cả | Query phổ biến |
-| 17 | khách sạn 5 sao | Hospitality | 0.90 | **0.50** | 0.90 | **BM25/Hybrid** | Số "5" gây nhiễu, BM25 và Hybrid vẫn ổn hơn Vector |
-| 18 | thực phẩm sạch | Nông sản | 1.00 | 0.90 | 1.00 | **BM25/Hybrid** | Vector trả 1/10 kết quả không liên quan thực phẩm |
-| 19 | năng lượng mặt trời | Công nghệ xanh | 1.00 | 1.00 | 1.00 | Tất cả | Vector tìm được cả "Solar" (tiếng Anh) — cross-lingual tốt |
-| 20 | giải trí truyền thông | Media | 1.00 | 1.00 | 1.00 | Tất cả | Cả 2 phương pháp tốt |
+| #  | Query                            | Loại                | P@10 BM25      | P@10 Vec       | P@10 Hyb       | Winner                | Phân tích                                                                                          |
+| -- | -------------------------------- | -------------------- | -------------- | -------------- | -------------- | --------------------- | ---------------------------------------------------------------------------------------------------- |
+| 1  | công ty xây dựng hà nội     | Ngành+ĐĐ          | 1.00           | 1.00           | 1.00           | Tất cả              | Cả 3 engine đều tốt: query phổ biến, nhiều kết quả relevant                                 |
+| 2  | phần mềm kế toán             | SP chuyên ngành    | 1.00           | 1.00           | 1.00           | Tất cả              | Từ khoá đặc trưng, cả BM25 lẫn Vector đều dễ match                                         |
+| 3  | bất động sản sài gòn       | Ngành+Tên          | 1.00           | 1.00           | 1.00           | Tất cả              | Dữ liệu dồi dào, cả 2 phương pháp hoạt động tốt                                          |
+| 4  | xuất khẩu thủy sản cần thơ | Ngành+ĐĐ cụ thể | 1.00           | **0.10** | 1.00           | **BM25/Hybrid** | Vector chỉ 0.10 — embedding không encode tốt địa danh "Cần Thơ" + thuật ngữ chuyên ngành |
+| 5  | dịch vụ vận tải logistics    | Ngành+ngoại lai    | 1.00           | 1.00           | 1.00           | Tất cả              | Từ "logistics" có mặt cả trong tên công ty (BM25) lẫn embedding (Vector)                      |
+| 6  | sản xuất bao bì               | Sản xuất           | 1.00           | 0.80           | 1.00           | **BM25/Hybrid** | Vector trả về 2/10 kết quả không liên quan bao bì                                             |
+| 7  | nhà hàng tiệc cưới          | Dịch vụ            | 1.00           | **0.30** | 1.00           | **BM25/Hybrid** | Vector trả về "wedding studio", "Quang Châu Thành" — semantic quá rộng, thiếu chính xác    |
+| 8  | trường học quốc tế          | Giáo dục           | 1.00           | 1.00           | 1.00           | Tất cả              | Cả 2 phương pháp hoạt động tốt                                                               |
+| 9  | bệnh viện thú y               | Y tế chuyên biệt  | 1.00           | **0.70** | 1.00           | **BM25/Hybrid** | "Thú y" là thuật ngữ chuyên ngành hẹp, Vector thiếu chính xác                              |
+| 10 | shop quần áo thời trang       | Bán lẻ             | 1.00           | 1.00           | 1.00           | Tất cả              | Query phổ biến                                                                                     |
+| 11 | máy tính chơi game            | **Semantic**   | **0.30** | **0.90** | **0.40** | **Vector**      | **Case study**: BM25 match "chơi" → "đi chơi", "golf". Vector hiểu "gaming computer"      |
+| 12 | mỹ phẩm làm đẹp             | Thương mại        | 1.00           | **0.50** | 1.00           | **BM25/Hybrid** | Vector trả kết quả beauty rộng, BM25 chính xác hơn                                            |
+| 13 | tư vấn luật doanh nghiệp     | Pháp lý            | 1.00           | **0.60** | 1.00           | **BM25/Hybrid** | Vector trả về công ty tư vấn chung, thiếu "luật"                                              |
+| 14 | điện máy gia dụng            | Bán lẻ             | 1.00           | 1.00           | 1.00           | Tất cả              | Cả 2 phương pháp tốt                                                                            |
+| 15 | sửa chữa ô tô                | Dịch vụ            | 1.00           | 1.00           | 1.00           | Tất cả              | Cả 2 phương pháp tốt                                                                            |
+| 16 | du lịch lữ hành               | Du lịch             | 1.00           | 1.00           | 1.00           | Tất cả              | Query phổ biến                                                                                     |
+| 17 | khách sạn 5 sao                | Hospitality          | 0.90           | **0.50** | 0.90           | **BM25/Hybrid** | Số "5" gây nhiễu, BM25 và Hybrid vẫn ổn hơn Vector                                            |
+| 18 | thực phẩm sạch                | Nông sản           | 1.00           | 0.90           | 1.00           | **BM25/Hybrid** | Vector trả 1/10 kết quả không liên quan thực phẩm                                             |
+| 19 | năng lượng mặt trời         | Công nghệ xanh     | 1.00           | 1.00           | 1.00           | Tất cả              | Vector tìm được cả "Solar" (tiếng Anh) — cross-lingual tốt                                   |
+| 20 | giải trí truyền thông        | Media                | 1.00           | 1.00           | 1.00           | Tất cả              | Cả 2 phương pháp tốt                                                                            |
 
 ### 8.4. Case Study — Phân tích Sâu
 
@@ -601,29 +602,29 @@ Bảng dưới đây cho thấy **Precision@10 của từng query** trên cả 3
 
 Đây là query **showcase** cho khả năng AI, cũng là trường hợp **BM25 thất bại hoàn toàn**:
 
-| Engine | Top 3 kết quả | P@10 | Giải thích |
-|---|---|---|---|
-| **BM25** | "Giải Pháp Đi Chơi", "Lingua Chơi", "Người Chơi Golf" | **0.30** | BM25 match "chơi" → toàn kết quả về "đi chơi", "golf"; chỉ 3/10 trùng "trò chơi điện tử" |
-| **Vector** | "Trò Chơi Điện Tử Cyber", "Galaxy Gaming Computer", "Gentleman Dog Games" | **0.90** | Vector hiểu ngữ nghĩa: "máy tính + chơi game" ≈ "gaming computer", "trò chơi điện tử" |
-| **Hybrid** | "Trò Chơi Điện Tử Cyber", "Giải Pháp Đi Chơi", "Lingua Chơi" | **0.40** | BM25 chiếm 65% trọng số → kết quả sai kéo xuống, chỉ 4/10 relevant |
+| Engine           | Top 3 kết quả                                                                | P@10           | Giải thích                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------ | -------------- | ------------------------------------------------------------------------------------------------------- |
+| **BM25**   | "Giải Pháp Đi Chơi", "Lingua Chơi", "Người Chơi Golf"                  | **0.30** | BM25 match "chơi" → toàn kết quả về "đi chơi", "golf"; chỉ 3/10 trùng "trò chơi điện tử" |
+| **Vector** | "Trò Chơi Điện Tử Cyber", "Galaxy Gaming Computer", "Gentleman Dog Games" | **0.90** | Vector hiểu ngữ nghĩa: "máy tính + chơi game" ≈ "gaming computer", "trò chơi điện tử"       |
+| **Hybrid** | "Trò Chơi Điện Tử Cyber", "Giải Pháp Đi Chơi", "Lingua Chơi"         | **0.40** | BM25 chiếm 65% trọng số → kết quả sai kéo xuống, chỉ 4/10 relevant                             |
 
 **Phân tích Chi tiết**: Với các truy vấn mang tính ngữ nghĩa thuần túy (như máy tính chơi game), Vector Search thể hiện ưu thế vượt trội nhờ khả năng hiểu ngữ cảnh không phụ thuộc vào mặt chữ. Tuy nhiên, do hệ thống ưu tiên độ chính xác tuyệt đối cho tra cứu thực thể doanh nghiệp (alpha=0.65 cho BM25), kết quả Hybrid sẽ cân bằng giữa cả hai nhóm.
 
 #### 8.4.2. Case Study 2: BM25 vượt trội — `"nhà hàng tiệc cưới"`
 
-| Engine | Điểm mạnh | P@10 |
-|---|---|---|
-| **BM25** | Match chính xác cả "nhà hàng" + "tiệc cưới" → kết quả đúng chuyên ngành | **1.00** |
+| Engine           | Điểm mạnh                                                                                      | P@10           |
+| ---------------- | ------------------------------------------------------------------------------------------------- | -------------- |
+| **BM25**   | Match chính xác cả "nhà hàng" + "tiệc cưới" → kết quả đúng chuyên ngành            | **1.00** |
 | **Vector** | Trả về "Phúc Wedding Studio", "Quang Châu Thành" — embedding quá rộng, chỉ 3/10 relevant | **0.30** |
 
 **Bài học rút ra**: Với thuật ngữ chuyên ngành đặc thù (tiệc cưới, thú y, gia dụng), BM25 token matching cho kết quả chính xác hơn Vector embedding.
 
 #### 8.4.3. Case Study 3: Cả hai ngang nhau — `"năng lượng mặt trời"`
 
-| Engine | Top 3 kết quả | P@10 |
-|---|---|---|
-| **BM25** | "Năng Lượng Mặt Trời ATAD", "Năng Lượng Mặt Trời Đỏ Long An" | **1.00** |
-| **Vector** | "Solar Bright VN", "Sunflowers Solar", "Solar PT" | **1.00** |
+| Engine           | Top 3 kết quả                                                          | P@10           |
+| ---------------- | ------------------------------------------------------------------------ | -------------- |
+| **BM25**   | "Năng Lượng Mặt Trời ATAD", "Năng Lượng Mặt Trời Đỏ Long An" | **1.00** |
+| **Vector** | "Solar Bright VN", "Sunflowers Solar", "Solar PT"                        | **1.00** |
 
 **Nhận xét**: Đây là ví dụ lý tưởng cho giá trị của Hybrid Search. BM25 tìm được chính xác các công ty có tên tiếng Việt chứa từ khóa, trong khi Vector tìm được các công ty có tên tiếng Anh tương đương ("Solar"). Sự kết hợp này mang lại độ phủ (Recall) cao nhất cho hệ thống.
 
@@ -631,44 +632,42 @@ Bảng dưới đây cho thấy **Precision@10 của từng query** trên cả 3
 
 #### AI (Vector Search) tốt hơn BM25 khi:
 
-| Tình huống | Query ví dụ | Lý do |
-|---|---|---|
-| Từ đồng nghĩa / paraphrase | "máy tính chơi game" | Vector hiểu "game" ≈ "gaming computer", "trò chơi điện tử" |
-| Mixed language (Việt + Anh) | "năng lượng mặt trời" | Vector tìm được cả "Solar" (tên tiếng Anh) |
-| Query mơ hồ / broad | "thực phẩm sạch" | Vector hiểu context rộng: organic, nông sản, food safety |
+| Tình huống                   | Query ví dụ              | Lý do                                                            |
+| ------------------------------ | -------------------------- | ----------------------------------------------------------------- |
+| Từ đồng nghĩa / paraphrase | "máy tính chơi game"    | Vector hiểu "game" ≈ "gaming computer", "trò chơi điện tử" |
+| Mixed language (Việt + Anh)   | "năng lượng mặt trời" | Vector tìm được cả "Solar" (tên tiếng Anh)                 |
+| Query mơ hồ / broad          | "thực phẩm sạch"        | Vector hiểu context rộng: organic, nông sản, food safety      |
 
 #### AI (Vector Search) tệ hơn BM25 khi:
 
-| Tình huống | Query ví dụ | Lý do |
-|---|---|---|
+| Tình huống                          | Query ví dụ                                   | Lý do                                                                     |
+| ------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------- |
 | Thuật ngữ chuyên ngành đặc thù | "nhà hàng tiệc cưới", "bệnh viện thú y" | Embedding quá rộng, không giữ được tính chính xác chuyên ngành |
-| Địa danh cụ thể | "xuất khẩu thủy sản cần thơ" | Embedding không encode tốt tên địa danh Việt Nam |
-| Từ viết tắt pháp lý | "TNHH MTV", "CP", "XNK" | BM25 khớp chính xác từng token viết tắt |
-| Mã số thuế | "0301234567" | Vector trả về 100% sai — chuỗi số không mang ngữ nghĩa |
+| Địa danh cụ thể                   | "xuất khẩu thủy sản cần thơ"              | Embedding không encode tốt tên địa danh Việt Nam                     |
+| Từ viết tắt pháp lý              | "TNHH MTV", "CP", "XNK"                         | BM25 khớp chính xác từng token viết tắt                              |
+| Mã số thuế                         | "0301234567"                                    | Vector trả về 100% sai — chuỗi số không mang ngữ nghĩa             |
 
 #### Hybrid — Điểm mạnh và hạn chế:
 
-| Điểm mạnh | Hạn chế |
-|---|---|
-| Bù đắp nhược điểm BM25 bằng Vector (cross-lingual, đồng nghĩa) | Với queries thuần ngữ nghĩa, `alpha=0.65` cho BM25 quá cao → BM25 sai kéo Hybrid xuống |
-| Bù đắp nhược điểm Vector bằng BM25 (tên pháp lý, địa chỉ) | Latency cao hơn (cần chạy cả 2 engine) |
-| MST Bypass Scan xử lý 100% mã số thuế | |
-| Exact/Substring Boost bảo vệ Exact Match | |
+| Điểm mạnh                                                              | Hạn chế                                                                                       |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Bù đắp nhược điểm BM25 bằng Vector (cross-lingual, đồng nghĩa) | Với queries thuần ngữ nghĩa,`alpha=0.65` cho BM25 quá cao → BM25 sai kéo Hybrid xuống |
+| Bù đắp nhược điểm Vector bằng BM25 (tên pháp lý, địa chỉ)   | Latency cao hơn (cần chạy cả 2 engine)                                                      |
+| MST Bypass Scan xử lý 100% mã số thuế                                |                                                                                                 |
+| Exact/Substring Boost bảo vệ Exact Match                                |                                                                                                 |
 
 ### 8.6. Tóm tắt các Chỉ số Kỹ thuật
 
-| Chỉ số                          | Giá trị                           |
-| --------------------------------- | ----------------------------------- |
-| Tổng số documents đã index    | 1,842,525                           |
-| Vocabulary (BM25)                 | 695,470 terms                       |
-| Vector dimension                  | 384                                 |
-| Tổng vectors (FAISS)             | 1,842,525                           |
-| FAISS Index Type                  | FlatIP (brute-force)                |
-| Recall Pool Size (benchmark)      | 200 docs/engine                     |
-| Metrics đánh giá                 | Precision@10, Recall@10, MRR, nDCG@10 |
-| False Positive cho MST/Exact Name | **0%**                        |
-
-> **Chứng minh**: Chạy `py tests/benchmark.py` để tái tạo toàn bộ số liệu trên. Script tự động tính Precision@10, Recall@10 (pooled estimation), MRR, nDCG@10 cho cả 3 engine và phân tích per-query. Kết quả được lưu vào `tests/benchmark_output.txt`.
+| Chỉ số                          | Giá trị                             |
+| --------------------------------- | ------------------------------------- |
+| Tổng số documents đã index    | 1,842,525                             |
+| Vocabulary (BM25)                 | 695,470 terms                         |
+| Vector dimension                  | 384                                   |
+| Tổng vectors (FAISS)             | 1,842,525                             |
+| FAISS Index Type                  | FlatIP (brute-force)                  |
+| Recall Pool Size (benchmark)      | 200 docs/engine                       |
+| Metrics đánh giá               | Precision@10, Recall@10, MRR, nDCG@10 |
+| False Positive cho MST/Exact Name | **0%**                          |
 
 ---
 
@@ -678,25 +677,12 @@ Bảng dưới đây cho thấy **Precision@10 của từng query** trên cả 3
 
 | Yêu cầu đặc tả                          | Trạng thái    | Chi tiết                                                                  |
 | -------------------------------------------- | --------------- | -------------------------------------------------------------------------- |
-| Vector Search (FAISS + SentenceTransformers) | ✅ Hoàn thành | FAISS IndexFlatIP + MiniLM-L12-v2, toàn bộ 1.8M docs (auto CUDA/CPU)    |
+| Vector Search (FAISS + SentenceTransformers) | ✅ Hoàn thành | FAISS IndexFlatIP + MiniLM-L12-v2, toàn bộ 1.8M docs (auto CUDA/CPU)     |
 | Web Interface                                | ✅ Hoàn thành | FastAPI + Vanilla SPA, Google-like UI, đầy đủ Search/Filter/Pagination |
 | Hybrid Search (BM25 + Vector)                | ✅ Hoàn thành | RRF (alpha=0.65) + Exact/Substring Boost + MST Bypass                      |
 | Evaluation (20 queries, P@10)                | ✅ Hoàn thành | So sánh 3 phương pháp, phân tích AI vs Traditional                   |
 
-### 9.2. Stack Công nghệ cuối cùng
-
-| Thành phần  | Công nghệ                                                      |
-| ------------- | ---------------------------------------------------------------- |
-| Ngôn ngữ    | Python 3.10+                                                     |
-| Web Framework | FastAPI + Uvicorn                                                |
-| Frontend      | HTML5 + CSS3 + Vanilla JavaScript                                |
-| AI Model      | SentenceTransformers (`paraphrase-multilingual-MiniLM-L12-v2`) |
-| Vector DB     | FAISS (`IndexFlatIP`)                                          |
-| NLP           | PyVi (Word Segmentation tiếng Việt)                            |
-| GPU           | PyTorch CUDA 12.1                                                |
-| Dữ liệu     | JSONL (6.2 GB, 1.8M documents)                                   |
-
-### 9.3. Cấu trúc File Milestone 3
+### 9.2. Cấu trúc File Milestone 3
 
 ```
 SEG301-OverFitting/
@@ -733,7 +719,7 @@ SEG301-OverFitting/
 └── requirements.txt
 ```
 
-### 9.4. Hướng dẫn chạy (Milestone 3)
+### 9.3. Hướng dẫn chạy (Milestone 3)
 
 ```bash
 # Bước 1: Kích hoạt môi trường
