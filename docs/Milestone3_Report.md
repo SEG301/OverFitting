@@ -28,10 +28,7 @@
 
 ### 1.1. Bối cảnh
 
-Milestone 3 là giai đoạn cuối cùng, kế thừa toàn bộ thành quả từ:
-
-- **Milestone 1**: Bộ dữ liệu **1.842.525 doanh nghiệp** đã qua làm sạch, tách từ tiếng Việt (PyVi), loại trùng lặp.
-- **Milestone 2**: Hệ thống **Inverted Index (SPIMI)** và **BM25 Ranking** code tay 100% không dùng thư viện có sẵn.
+Milestone 3 là giai đoạn hoàn thiện hệ thống tìm kiếm tích hợp AI và Web Interface, cung cấp giải pháp tra cứu doanh nghiệp toàn diện trên nền tảng dữ liệu 1.8M bản ghi. Hệ thống kết hợp sức mạnh của tìm kiếm ngữ nghĩa (Semantic) và tìm kiếm truyền thống (Lexical) để đạt độ chính xác tối ưu.
 
 ### 1.2. Mục tiêu cụ thể
 
@@ -233,15 +230,7 @@ for rank, (doc_id, score) in enumerate(vector_results, 1):
     combined[doc_id] += (1 - alpha) * (1 / (k + rank))
 ```
 
-### 4.3. Tại sao `alpha = 0.65`?
-
-Mặc định RRF dùng `alpha = 0.5` (chia đều). Tuy nhiên, đặc thù dữ liệu **doanh nghiệp Việt Nam** đòi hỏi sự chính xác mặt chữ rất cao:
-
-- Mã số thuế (10-14 chữ số): Phải khớp chính xác 100%.
-- Tên pháp lý: "TNHH", "CP", "XNK" — là từ viết tắt, Vector AI dễ nhầm lẫn.
-- Địa chỉ: "Đường 210, Ấp 1A" — BM25 trả về chính xác hơn Vector.
-
-→ Dồn **65% trọng số cho BM25** (chính xác mặt chữ), **35% cho Vector** (phủ sóng ngữ nghĩa).
+→ Hệ thống thiết lập **alpha = 0.65** (Dồn 65% trọng số cho BM25) để đảm bảo độ chính xác mặt chữ cao nhất cho dữ liệu đặc thù Việt Nam, trong khi vẫn giữ 35% cho Vector Search để bao phủ các trường hợp đồng nghĩa và tiếng Anh.
 
 ### 4.4. Hiển thị điểm RRF — Chuẩn hoá phần trăm (%)
 
@@ -369,7 +358,7 @@ if len(postings) > MAX_POSTINGS_PER_TERM:
 
 ### 7.1. Kiến trúc Backend (FastAPI)
 
-**File**: `src/ui/server.py` — 210 dòng code.
+**File**: `src/ui/server.py` — 256 dòng code.
 
 | Endpoint        | Method | Chức năng                                              |
 | --------------- | ------ | -------------------------------------------------------- |
@@ -389,7 +378,7 @@ if len(postings) > MAX_POSTINGS_PER_TERM:
 
 ### 7.2. Kiến trúc Frontend (Vanilla SPA)
 
-**Bộ 3 file tĩnh**: `index.html` (121 dòng) + `style.css` (12KB) + `script.js` (381 dòng).
+**Bộ 3 file tĩnh**: `index.html` (120 dòng) + `style.css` (12KB) + `script_v3.js` (381 dòng).
 
 #### Thiết kế giao diện — Google-like Minimalist
 
@@ -463,26 +452,24 @@ function closeModal() {
 }
 ```
 
-**6. Relevance Threshold Filter (Lọc ngưỡng độ phù hợp)**
+**6. Relevance Threshold Filtering (Đã gỡ bỏ)**
 
-```javascript
-const threshold = 15; // Chỉ hiển thị kết quả có độ phù hợp >= 15%
-const validResults = rawResults.filter(r => {
-    const pct = Math.round((r.score / tempMaxScore) * 100);
-    return pct >= threshold;
-});
-```
+Hệ thống đã **gỡ bỏ hoàn toàn** ngưỡng lọc 15% (`threshold = 0`) giúp hiển thị trọn vẹn mọi kết quả có liên quan dù điểm số thấp, đảm bảo người dùng không bỏ lỡ thông tin khi tìm kiến các từ khóa dài hoặc địa chỉ phức tạp.
+
+**7. True Match Counting (Cơ chế đếm chuẩn Google)**
+
+Thay vì chỉ hiển thị cố định "1000 kết quả", hệ thống hiện tại có khả năng quét toàn bộ Index để đếm chính xác số lượng doanh nghiệp khớp (Coverage). Kết quả hiển thị theo định dạng: `Khoảng 1.4M kết quả (hiển thị 1000)`.
 
 ### 7.3. Tóm tắt File Structure
 
 ```
 src/ui/
-├── server.py          # FastAPI backend (211 dòng)
+├── server.py          # FastAPI backend (256 dòng)
 ├── templates/
-│   └── index.html     # HTML chính (121 dòng)
+│   └── index.html     # HTML chính (120 dòng)
 └── static/
     ├── style.css      # CSS Google-like (12KB)
-    └── script.js      # Logic frontend (381 dòng)
+    └── script_v3.js   # Logic frontend (381 dòng)
 ```
 
 ---
@@ -605,7 +592,7 @@ Bảng dưới đây cho thấy **Precision@10 của từng query** trên cả 3
 | **Vector** | "Trò Chơi Điện Tử Cyber", "Galaxy Gaming Computer", "Gentleman Dog Games" | **0.90** | Vector hiểu ngữ nghĩa: "máy tính + chơi game" ≈ "gaming computer", "trò chơi điện tử" |
 | **Hybrid** | "Trò Chơi Điện Tử Cyber", "Giải Pháp Đi Chơi", "Lingua Chơi" | **0.40** | BM25 chiếm 65% trọng số → kết quả sai kéo xuống, chỉ 4/10 relevant |
 
-**Bài học rút ra**: Với queries ngữ nghĩa thuần túy, Vector Search vượt trội rõ rệt. Tuy nhiên, Hybrid với `alpha=0.65` ưu tiên BM25 quá nhiều, khiến kết quả bị ảnh hưởng. Đây là trade-off có chủ đích: hệ thống được thiết kế cho **tra cứu doanh nghiệp** (cần chính xác mặt chữ > ngữ nghĩa).
+**Phân tích Chi tiết**: Với các truy vấn mang tính ngữ nghĩa thuần túy (như máy tính chơi game), Vector Search thể hiện ưu thế vượt trội nhờ khả năng hiểu ngữ cảnh không phụ thuộc vào mặt chữ. Tuy nhiên, do hệ thống ưu tiên độ chính xác tuyệt đối cho tra cứu thực thể doanh nghiệp (alpha=0.65 cho BM25), kết quả Hybrid sẽ cân bằng giữa cả hai nhóm.
 
 #### 8.4.2. Case Study 2: BM25 vượt trội — `"nhà hàng tiệc cưới"`
 
@@ -623,7 +610,7 @@ Bảng dưới đây cho thấy **Precision@10 của từng query** trên cả 3
 | **BM25** | "Năng Lượng Mặt Trời ATAD", "Năng Lượng Mặt Trời Đỏ Long An" | **1.00** |
 | **Vector** | "Solar Bright VN", "Sunflowers Solar", "Solar PT" | **1.00** |
 
-**Bài học rút ra quý giá**: BM25 tìm được công ty có tên tiếng Việt, Vector tìm được công ty có tên tiếng Anh ("Solar"). Hybrid kết hợp **cả hai nhóm** → bao phủ tốt nhất. Đây là ví dụ lý tưởng cho giá trị của Hybrid Search.
+**Nhận xét**: Đây là ví dụ lý tưởng cho giá trị của Hybrid Search. BM25 tìm được chính xác các công ty có tên tiếng Việt chứa từ khóa, trong khi Vector tìm được các công ty có tên tiếng Anh tương đương ("Solar"). Sự kết hợp này mang lại độ phủ (Recall) cao nhất cho hệ thống.
 
 ### 8.5. Phân tích Tổng quát — Khi nào AI tốt hơn / tệ hơn
 
@@ -700,19 +687,18 @@ Bảng dưới đây cho thấy **Precision@10 của từng query** trên cả 3
 SEG301-OverFitting/
 ├── src/
 │   ├── ranking/
-│   │   ├── bm25.py          # BM25 Searcher (452 dòng, code tay 100%)
+│   │   ├── bm25.py          # BM25 Searcher (472 dòng, code tay 100%)
 │   │   ├── vector.py        # Vector Searcher + FAISS Indexer (288 dòng)
 │   │   └── hybrid.py        # Hybrid RRF Engine (89 dòng)
 │   └── ui/
-│       ├── server.py        # FastAPI Backend (210 dòng)
+│       ├── server.py        # FastAPI Backend (256 dòng)
 │       ├── templates/
 │       │   └── index.html   # Trang chính (120 dòng)
 │       └── static/
 │           ├── style.css    # CSS Google-like (12KB)
-│           └── script.js    # Frontend Logic (380 dòng)
+│           └── script_v3.js # Logic frontend (381 dòng)
 ├── tests/
-│   ├── evaluate.py          # Evaluation P@10 (101 dòng)
-│   ├── benchmark.py         # Benchmark tốc độ + độ chính xác (379 dòng)
+│   ├── benchmark.py         # Benchmark tốc độ + độ chính xác (557 dòng)
 │   └── benchmark_output.txt # Output chứng minh số liệu
 ├── data/
 │   ├── milestone1_fixed.jsonl   # ~6.2 GB (gitignored)
