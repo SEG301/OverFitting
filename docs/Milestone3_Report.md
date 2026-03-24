@@ -71,7 +71,7 @@ flowchart TD
     A[User nhap query] --> B[Frontend gui GET /api/search]
     B --> C{Regex: Co phai MST? 8-15 chu so}
 
-    C -- La MST --> D[O(1) Hash Map Lookup]
+    C -- La MST --> D["O(1) Hash Map Lookup"]
     D --> E[Tra cuu file qua Byte Offset]
     E --> K[JSON Response - Frontend]
 
