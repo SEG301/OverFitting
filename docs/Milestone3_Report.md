@@ -189,9 +189,9 @@ flowchart TD
 | Phương pháp              | Điểm mạnh                                           | Điểm yếu                                                           |
 | Phương pháp | Điểm mạnh | Điểm yếu |
 | :--- | :--- | :--- |
-| **BM25** (Lexical) | Chính xác tuyệt đối mặt chữ | Không hiểu ngữ nghĩa |
-| **Vector** (Semantic) | Hiểu ngữ nghĩa, đồng nghĩa | Thiếu chính xác với tên riêng, số |
-| **Hybrid (RRF)** | Kết hợp ưu điểm cả hai | Cần tinh chỉnh trọng số |
+| **BM25** (Lexical) | **Chuyên trị mặt chữ**: Chính xác tuyệt đối khi từ khoá khớp 1:1 trong tên doanh nghiệp. | **Mù ngữ nghĩa**: Không hiểu "laptop gaming" và "máy tính chơi game" là một. |
+| **Vector** (Semantic) | **Chuyên trị ngữ nghĩa**: Hiểu context, tìm được các từ đồng nghĩa, liên quan (AI Power). | **Mất dấu thực thể**: Hay nhầm lẫn các tên riêng, mã số hoặc địa chỉ cụ thể. |
+| **Hybrid (RRF)** | **Sức mạnh tổng hợp**: Lấy top kết quả từ cả hai, bù đắp mọi nhược điểm của từng bên. | Cần tinh chỉnh trọng số $\alpha$ để đạt điểm cân bằng tối ưu. |
 
 ### 4.2. Thuật toán Reciprocal Rank Fusion (RRF)
 
@@ -203,9 +203,9 @@ $$
 
 Trong đó:
 
-- $k = 60$ (hằng số smoothing chuẩn)
-- $w_r$ : Trọng số của mỗi ranker
-- $rank_r(d)$ : Thứ hạng của tài liệu $d$ trong ranker $r$
+- $k = 60$ (Hằng số làm mượt chuẩn công nghiệp)
+- $w_r$ : Trọng số của mỗi ranker (Ví dụ: BM25 là 0.65, Vector là 0.35)
+- $rank_r(d)$ : Vị trí xếp hạng của tài liệu $d$ trong danh sách trả về của ranker $r$
 
 **Cài đặt cụ thể:**
 
