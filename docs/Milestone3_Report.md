@@ -178,15 +178,6 @@ flowchart TD
 | `device`       | auto-detect    | Tự động dùng CUDA nếu có GPU, fallback CPU |
 | `gc.collect()` | Sau mỗi chunk | Giải phóng Python objects, tránh memory leak  |
 
-### 3.5. Search Flow
-
-```python
-def search(self, query: str, top_k: int = 10):
-    query_vector = self.model.encode([query])
-    faiss.normalize_L2(query_vector)
-    distances, indices = self.index.search(query_vector, top_k)
-    # distances chính là cosine similarity scores
-    return [(self.doc_ids[idx], float(dist)) for dist, idx in zip(distances[0], indices[0])]
 ```
 
 ---
@@ -556,7 +547,7 @@ Ví dụ cho query `"máy tính chơi game"`:
 | ---------------------------------------- | --------------------------- | ------------- | ---------------------------- |
 | **Chính xác Tên pháp lý**     | ⭐⭐⭐⭐⭐                  | ⭐⭐          | ⭐⭐⭐⭐⭐                   |
 | **Tìm đồng nghĩa/ngữ nghĩa** | ⭐                          | ⭐⭐⭐⭐⭐    | ⭐⭐⭐⭐                     |
-| **Tra cứu MST**                   | ❌ (không có trong index) | ❌ (sai 100%) | ✅ (O(1) Hash Index)         |
+| **Tra cứu MST**                   | ❌ (Bypass để tối ưu tốc độ) | ❌ (sai 100%) | ✅ (O(1) Hash Index)         |
 | **Tra cứu Địa chỉ dài**       | ⭐⭐⭐ (sau fix CF)         | ⭐⭐          | ⭐⭐⭐⭐⭐ (Substring Boost) |
 
 #### 8.2.2. So sánh định lượng (Quantitative) — 20 queries
@@ -630,7 +621,7 @@ Bảng dưới đây cho thấy **Precision@10 của từng query** trên cả 3
 
 ### 8.5. Phân tích Tổng quát — Khi nào AI tốt hơn / tệ hơn
 
-#### AI (Vector Search) tốt hơn BM25 khi:
+#### AI (Vector Search) tốt hơn BM25 khi
 
 | Tình huống                   | Query ví dụ              | Lý do                                                            |
 | ------------------------------ | -------------------------- | ----------------------------------------------------------------- |
@@ -638,7 +629,7 @@ Bảng dưới đây cho thấy **Precision@10 của từng query** trên cả 3
 | Mixed language (Việt + Anh)   | "năng lượng mặt trời" | Vector tìm được cả "Solar" (tên tiếng Anh)                 |
 | Query mơ hồ / broad          | "thực phẩm sạch"        | Vector hiểu context rộng: organic, nông sản, food safety      |
 
-#### AI (Vector Search) tệ hơn BM25 khi:
+#### AI (Vector Search) tệ hơn BM25 khi
 
 | Tình huống                          | Query ví dụ                                   | Lý do                                                                     |
 | ------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------- |
@@ -647,7 +638,7 @@ Bảng dưới đây cho thấy **Precision@10 của từng query** trên cả 3
 | Từ viết tắt pháp lý              | "TNHH MTV", "CP", "XNK"                         | BM25 khớp chính xác từng token viết tắt                              |
 | Mã số thuế                         | "0301234567"                                    | Vector trả về 100% sai — chuỗi số không mang ngữ nghĩa             |
 
-#### Hybrid — Điểm mạnh và hạn chế:
+#### Hybrid — Điểm mạnh và hạn chế
 
 | Điểm mạnh                                                              | Hạn chế                                                                                       |
 | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
