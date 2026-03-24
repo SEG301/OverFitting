@@ -187,24 +187,25 @@ flowchart TD
 ### 4.1. Tại sao cần Hybrid?
 
 | Phương pháp              | Điểm mạnh                                           | Điểm yếu                                                           |
-| --------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------- |
-| **BM25** (Lexical)    | Chính xác tuyệt đối khi từ khoá khớp mặt chữ | Không hiểu ngữ nghĩa ("laptop gaming" ≠ "máy tính chơi game") |
-| **Vector** (Semantic) | Hiểu ngữ nghĩa, tìm được đồng nghĩa          | Thiếu chính xác với tên riêng, mã số, địa chỉ cụ thể     |
-| **Hybrid (RRF)**      | Kết hợp ưu điểm cả hai                           | Cần tinh chỉnh trọng số                                           |
+| Phương pháp | Điểm mạnh | Điểm yếu |
+| :--- | :--- | :--- |
+| **BM25** (Lexical) | Chính xác tuyệt đối mặt chữ | Không hiểu ngữ nghĩa |
+| **Vector** (Semantic) | Hiểu ngữ nghĩa, đồng nghĩa | Thiếu chính xác với tên riêng, số |
+| **Hybrid (RRF)** | Kết hợp ưu điểm cả hai | Cần tinh chỉnh trọng số |
 
 ### 4.2. Thuật toán Reciprocal Rank Fusion (RRF)
 
 **Công thức RRF:**
 
 $$
-\text{RRF}_{score}(d) = \sum_{r \in \text{rankers}} \frac{w_r}{k + \text{rank}_r(d)}
+RRF_{score}(d) = \sum_{r \in rankers} \frac{w_r}{k + rank_r(d)}
 $$
 
 Trong đó:
 
-- $k = 60$ (hằng số smoothing, giá trị chuẩn từ paper gốc)
-- $w_r$ = trọng số của mỗi ranker
-- $\text{rank}_r(d)$ = thứ hạng của document $d$ trong ranker $r$
+- $k = 60$ (hằng số smoothing chuẩn)
+- $w_r$ : Trọng số của mỗi ranker
+- $rank_r(d)$ : Thứ hạng của tài liệu $d$ trong ranker $r$
 
 **Cài đặt cụ thể:**
 
