@@ -186,23 +186,23 @@ flowchart TD
 
 | Phương pháp | Điểm mạnh | Điểm yếu |
 | :--- | :--- | :--- |
-| **BM25** (Lexical) | **Chuyên trị mặt chữ**: Chính xác tuyệt đối khi từ khoá khớp 1:1. | **Mù ngữ nghĩa**: Không hiểu "laptop gaming" và "máy tính chơi game" là một. |
-| **Vector** (Semantic) | **Chuyên trị ngữ nghĩa**: Hiểu context, tìm được các từ đồng nghĩa (AI Power). | **Mất dấu thực thể**: Hay nhầm lẫn các tên riêng, mã số hoặc địa chỉ cụ thể. |
-| **Hybrid (RRF)** | **Sức mạnh tổng hợp**: Lấy top kết quả từ cả hai, bù đắp mọi nhược điểm. | Cần tinh chỉnh trọng số $\alpha$ để đạt điểm cân bằng tối ưu. |
+| **BM25** (Lexical) | **Chuyên trị mặt chữ**: Chính xác | **Mù ngữ nghĩa**: Không hiểu "laptop" = "máy tính" |
+| **Vector** (Semantic) | **Chuyên trị ngữ nghĩa**: Hiểu context, từ đồng nghĩa | **Mất dấu thực thể**: Hay nhầm lẫn tên riêng, số |
+| **Hybrid (RRF)** | **Sức mạnh tổng hợp**: Bù đắp mọi nhược điểm | Cần tinh chỉnh trọng số để đạt điểm cân bằng |
 
 ### 4.2. Thuật toán Reciprocal Rank Fusion (RRF)
 
 **Công thức RRF:**
 
 $$
-RRF_{score}(d) = \sum_{r \in rankers} \frac{w_r}{k + rank_r(d)}
+RRF(d) = \sum_{r \in rankers} \frac{w_r}{k + rank_r(d)}
 $$
 
 Trong đó:
 
-- $k = 60$ (Hằng số làm mượt chuẩn công nghiệp)
-- $w_r$ : Trọng số của mỗi ranker (Ví dụ: BM25 là 0.65, Vector là 0.35)
-- $\text{rank}_r(d)$ : Vị trí xếp hạng của tài liệu $d$ trong ranker $r$
+- **k = 60**: Hằng số làm mượt chuẩn (smoothing constant).
+- **w_r**: Trọng số của mỗi ranker (Ví dụ: BM25 chiếm 0.65, Vector chiếm 0.35).
+- **rank(d)**: Vị trí xếp hạng của tài liệu d trong ranker r.
 
 **Cài đặt cụ thể:**
 
