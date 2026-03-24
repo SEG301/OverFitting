@@ -171,12 +171,12 @@ flowchart TD
 
 **Chi tiết kỹ thuật quan trọng**:
 
-| Tham số         | Giá trị      | Lý do                                           |
-| ---------------- | -------------- | ------------------------------------------------ |
-| `CHUNK_SIZE`   | 50,000 docs    | Cân bằng tốc độ và RAM                     |
-| `batch_size`   | 128            | Tận dụng tối đa VRAM GPU                     |
-| `device`       | auto-detect    | Tự động dùng CUDA nếu có GPU, fallback CPU |
-| `gc.collect()` | Sau mỗi chunk | Giải phóng Python objects, tránh memory leak  |
+| Tham số | Giá trị | Lý do |
+| :--- | :--- | :--- |
+| CHUNK_SIZE | 50,000 docs | Cân bằng tốc độ và RAM |
+| batch_size | 128 | Tận dụng tối đa VRAM GPU |
+| device | auto-detect | Tự động dùng CUDA nếu có GPU, fallback CPU |
+| gc.collect() | Sau mỗi chunk | Giải phóng Python objects, tránh memory leak |
 
 ---
 
