@@ -87,7 +87,7 @@ flowchart TD
     F --> H[RRF Fusion alpha=0.65]
     G --> H
 
-    H --> I[Exact Match Boost: Anchor to Max Score]
+    H --> I[Exact Match Boost: Thưởng điểm tương đối]
     I --> K
     
     K --> J[Frontend: Normalize %]
@@ -269,11 +269,11 @@ if q_clean in mst_index:
 
 ### 5.2. Exact Match & Substring Boost
 
-**Vấn đề**: RRF gốc không ưu tiên đủ mạnh cho kết quả khớp chính xác tên/địa chỉ.
+**Vấn đề**: RRF gốc không ưu tiên đủ mạnh cho kết quả khớp chính xác tên/địa chỉ. Nhưng nếu cộng 1 số nguyên cố định vào RRF (vốn có giá trị vô cùng nhỏ) thì khoảng cách điểm sẽ bị kéo giãn phi mã, khiến phần trăm hiển thị tuột dốc không phanh.
 
-**Giải pháp — Tự động nổi bật bằng thuật toán Max-Score Anchor**:
+**Giải pháp — Thưởng điểm tương đối (Adaptive Boost)**:
 
-Để đảm bảo kết quả chính xác tuyệt đối luôn nổi lên vị trí Top 1 mà không làm hỏng tỷ lệ % hiển thị (tránh tình trạng kết quả top 1 chiếm 100% trong khi phần còn lại chỉ 10%), hệ thống lấy điểm cao nhất hiện tại `max_score` làm gốc:
+Để đảm bảo kết quả chính xác luôn nổi lên vị trí Top 1 mà phần trăm hiển thị không bị kéo dãn quá đáng (chống hiện tượng Top 1 chiếm 100% còn Top 2 chỉ đạt 10%), hệ thống không dùng số tĩnh mà sẽ lấy trực tiếp điểm cao nhất hiện tại (`max_score` của kết quả đứng đầu) làm gốc để cộng thưởng theo tỷ lệ:
 
 ```python
 q_lower = query.lower()
