@@ -76,10 +76,10 @@ async function performSearch() {
         document.getElementById('loading').style.display = 'none';
 
         if (data.results && data.results.length > 0) {
-            // Apply threshold filter (e.g. 25% minimum relevance)
+            // Apply threshold filter
             const rawResults = data.results;
             const tempMaxScore = rawResults[0].score > 0 ? rawResults[0].score : 1;
-            const threshold = 0; // Bỏ ngưỡng 15% để mở rộng giới hạn đầu ra tối đa
+            const threshold = 70; // Ngưỡng 70% (chênh lệch không quá 30% so với kết quả tốt nhất)
             
             const validResults = rawResults.filter(r => {
                 const pct = Math.round((r.score / tempMaxScore) * 100);
@@ -186,7 +186,11 @@ function loadMore() {
         const rank = currentDisplayed + i + 1;
 
         // Relevance percentage (normalize top result = 100%)
-        const pct = maxScore > 0 ? Math.round((r.score / maxScore) * 100) : 0;
+        let pct = 0;
+        if (maxScore > 0 && r.score > 0) {
+            pct = Math.round((r.score / maxScore) * 100);
+            if (pct === 0 && r.score > 0) pct = 1; // Đảm bảo không hiển thị 0% nếu có liên quan
+        }
         let relClass = 'relevance-high';
         if (pct < 60) relClass = 'relevance-low';
         else if (pct < 85) relClass = 'relevance-mid';

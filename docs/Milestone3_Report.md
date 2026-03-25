@@ -87,7 +87,7 @@ flowchart TD
     F --> H[RRF Fusion alpha=0.65]
     G --> H
 
-    H --> I[Exact Match Boost +100/+90/+50/+30/+20]
+    H --> I[Exact Match Boost: Anchor to Max Score]
     I --> K
     
     K --> J[Frontend: Normalize %]
@@ -271,36 +271,42 @@ if q_clean in mst_index:
 
 **Vấn đề**: RRF gốc không ưu tiên đủ mạnh cho kết quả khớp chính xác tên/địa chỉ.
 
-**Giải pháp — Thưởng điểm khổng lồ trực tiếp vào RRF score**:
+**Giải pháp — Tự động nổi bật bằng thuật toán Max-Score Anchor**:
+
+Để đảm bảo kết quả chính xác tuyệt đối luôn nổi lên vị trí Top 1 mà không làm hỏng tỷ lệ % hiển thị (tránh tình trạng kết quả top 1 chiếm 100% trong khi phần còn lại chỉ 10%), hệ thống lấy điểm cao nhất hiện tại `max_score` làm gốc:
 
 ```python
 q_lower = query.lower()
+max_score = max(r["score"] for r in results)
 
 for result in results:
-    comp_name = result["company_name"].lower()
-    addr = result["address"].lower()
-
+    boost_factor = 0.0
+    
     # Exact Match Company Name
-    if comp_name == q_lower:        result["score"] += 100.0   # Khớp tuyệt đối tên
+    if comp_name == q_lower:        boost_factor += 1.0   # Khớp tuyệt đối tên
     elif f" {q_lower} " in f" {comp_name} ": 
-                                   result["score"] += 50.0    # Cụm từ khớp chính xác
+                                    boost_factor += 0.5   # Cụm từ khớp chính xác
     elif q_words_set.issubset(comp_words_set):
-                                   result["score"] += 30.0    # Khớp tập hợp các từ
+                                    boost_factor += 0.3   # Khớp các từ thành phần
 
     # Exact Match Address
-    if addr == q_lower:             result["score"] += 90.0    # Khớp tuyệt đối địa chỉ
-    elif q_lower in addr:           result["score"] += 20.0    # Substring trong địa chỉ
+    if addr == q_lower:             boost_factor += 0.8   # Khớp tuyệt đối địa chỉ
+    elif q_lower in addr:           boost_factor += 0.2   # Trích 1 phần địa chỉ
+    
+    if boost_factor > 0:
+        # Ghi đè điểm: đảm bảo luôn > max_score và giữ được khoảng cách hợp lý
+        result["score"] = max_score + (max_score * boost_factor) + (result["score"] * 0.1)
 ```
 
-**Bảng tóm tắt Boost:**
+**Bảng tóm tắt Boost Factor:**
 
-| Loại khớp         | Điểm thưởng | Ví dụ                                                            |
-| ------------------- | --------------- | ------------------------------------------------------------------ |
-| Exact Name Match    | +100.0          | query = "Công Ty ABC" → tên = "Công Ty ABC"                    |
-| Phrase in Name      | +50.0           | query = "ABC" → tên = "Công ty TNHH ABC"                       |
-| Substring Words     | +30.0           | query = "Vận tải ABC" → tên = "CÔNG TY ABC VẬN TẢI"          |
-| Exact Address Match | +90.0           | query = "123 Đường X" → address = "123 Đường X"              |
-| Substring Address   | +20.0           | query = "Đường X" → address chứa chuỗi này                   |
+| Loại khớp         | Hệ số thưởng | Ý nghĩa thuật toán                                                      |
+| ------------------- | --------------- | ------------------------------------------------------------------------- |
+| Exact Name Match    | +1.0            | Vượt 100% so với điểm Top 1 gốc của Hybrid Search                       |
+| Phrase in Name      | +0.5            | Vượt 50% so với điểm Top 1 gốc                                          |
+| Substring Words     | +0.3            | Vượt 30% so với điểm Top 1 gốc                                          |
+| Exact Address Match | +0.8            | Vượt 80% so với điểm Top 1 gốc                                          |
+| Substring Address   | +0.2            | Vượt 20% so với điểm Top 1 gốc                                          |
 
 **Điều kiện kích hoạt**: Chỉ áp dụng khi query có từ 2 từ trở lên (tránh false positive với query 1 từ quá ngắn).
 
@@ -468,9 +474,9 @@ function closeModal() {
 }
 ```
 
-**6. Relevance Threshold Filtering (Đã gỡ bỏ)**
+**6. Relevance Threshold Filtering (Lọc kết quả nhiễu)**
 
-Hệ thống đã **gỡ bỏ hoàn toàn** ngưỡng lọc 15% (`threshold = 0`) giúp hiển thị trọn vẹn mọi kết quả có liên quan dù điểm số thấp, đảm bảo người dùng không bỏ lỡ thông tin khi tìm kiến các từ khóa dài hoặc địa chỉ phức tạp.
+Hệ thống áp dụng bộ lọc ngưỡng hiển thị linh hoạt: Bất kỳ kết quả nào có độ chênh lệch phù hợp lớn hơn **30%** so với kết quả đứng đầu (`threshold = 70%`) sẽ tự động bị ẩn khỏi giao diện. Việc này giúp tự động loại bỏ các kết quả "đuôi dài" (long-tail) có mức độ liên quan quá thấp do bị ép hiển thị bởi thuật toán vector search, giữ cho danh sách hiển thị luôn chính xác, gọn gàng và đáng tin cậy đối với người tải xuống.
 
 **7. True Match Counting (Cơ chế đếm chuẩn Google)**
 

@@ -145,7 +145,7 @@ async def api_search(
                         doc = json.loads(line)
                         found_docs.append({
                             "doc_id": -1,
-                            "score": 100.0,
+                            "score": 1.0,
                             **_meta_to_dict(doc)
                         })
             else:
@@ -157,7 +157,7 @@ async def api_search(
                             doc = json.loads(line)
                             found_docs.append({
                                 "doc_id": -1,
-                                "score": 100.0,
+                                "score": 1.0,
                                 **_meta_to_dict(doc)
                             })
                             break
@@ -193,28 +193,35 @@ async def api_search(
     q_lower = q_clean.lower()
     q_words_list = q_lower.split()
     q_words = len(q_words_list)
-    if q_words >= 2:
+    if q_words >= 2 and results:
+        max_score = max(r["score"] for r in results)
         q_words_set = set(q_words_list)
         for r in results:
             comp_name = r.get("company_name", "").lower().strip()
             addr = r.get("address", "").lower().strip()
             
+            boost_factor = 0.0
             # Ưu tiên theo tên công ty
             if comp_name == q_lower:
-                r["score"] += 100.0  # Khớp tuyệt đối tên công ty
+                boost_factor += 1.0    # Khớp tuyệt đối tên công ty
             elif f" {q_lower} " in f" {comp_name} ":
-                r["score"] += 50.0   # Khớp chính xác cụm từ khóa bên trong tên
+                boost_factor += 0.5    # Khớp chính xác cụm từ khóa bên trong tên
             else:
-                # Tìm kiếm 1 phần tên doanh nghiệp (cho phép bị xen từ, VD: "Công ty abc" -> "Công ty TNHH abc")
+                # Tìm kiếm 1 phần tên doanh nghiệp
                 comp_words_set = set(comp_name.split())
                 if q_words_set.issubset(comp_words_set):
-                    r["score"] += 30.0
+                    boost_factor += 0.3
                 
             # Ưu tiên theo địa chỉ (rất quan trọng cho user)
             if addr == q_lower:
-                r["score"] += 90.0   # Khớp tuyệt đối địa chỉ
+                boost_factor += 0.8   # Khớp tuyệt đối địa chỉ
             elif f"{q_lower}" in f"{addr}":
-                r["score"] += 20.0   # Trích 1 phần địa chỉ (VD: "Đường 210, Ấp 1A")
+                boost_factor += 0.2   # Trích 1 phần địa chỉ
+                
+            if boost_factor > 0:
+                # Công thức đảm bảo item này LUÔN ngoi lên đầu tiên (vượt max_score gốc)
+                # nhưng chênh lệch không quá ảo để làm hỏng phần trăm hiển thị
+                r["score"] = max_score + (max_score * boost_factor) + (r["score"] * 0.1)
 
     # Re-sort in case Exact Matches were boosted
     results = sorted(results, key=lambda x: x["score"], reverse=True)[:top_k]
