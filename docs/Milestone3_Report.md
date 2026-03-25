@@ -265,7 +265,6 @@ if q_clean in mst_index:
 | -------------------- | ------------------------------------- |
 | Thuật toán         | **Hash Map Lookup + File Seek** |
 | Độ phức tạp      | **O(1)**                        |
-| Thời gian thực tế | **< 1ms** (Tức thì)           |
 | Độ chính xác     | **100%**                        |
 
 ### 5.2. Exact Match & Substring Boost
