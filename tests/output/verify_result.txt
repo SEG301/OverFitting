@@ -1,0 +1,51 @@
+--- MAPPING CHECK ---
+[1]
+Master: CONG TY TNHH HADU GROUP
+1900:   HADU VIET NAM
+Addr:   So 4, ngach 44/8 Pho Bang B, Phuong Hoang Liet, Quan Hoang Mai, Ha Noi
+------------------------------
+[2]
+Master: CONG TY TNHH CMC TELECOM
+1900:   CMC Telecom
+Addr:   soll ngo 271 Đuong Lac Long Quan, Phuong Nghia Đo, Quan Cau Giay, Ha Noi
+------------------------------
+[3]
+Master: CONG TY TNHH GALAXY GLOBAL TECHNOLOGY
+1900:   GALAXY VIET NAM
+Addr:   So nha 154 lo D3, Khu đo thi Đai Kim, Phuong Đinh Cong, Quan Hoang Mai, Ha Noi
+------------------------------
+[4]
+Master: CONG TY TNHH THAM MY VIEN MAILISA
+1900:   Tham My Vien Mailisa
+Addr:   So 9 Ngach 2, Ngo 73 Yen Xa, Xa Tan Trieu, Huyen Thanh Tri, Ha Noi
+------------------------------
+[5]
+Master: CONG TY TNHH SOLAR SOFTWARE
+1900:   Solar Viet Nam
+Addr:   So 5 ngach 82/210 Kim Ma, Phuong Kim Ma, Quan Ba Đinh, Ha Noi
+------------------------------
+[6]
+Master: CONG TY TNHH FREETALK ENGLISH
+1900:   Freetalk English
+Addr:   Tang 9, so 381 Đoi can, Phuong cong Vi, Quan Ba Đinh, Ha Noi
+------------------------------
+[7]
+Master: CONG TY TNHH GLOBAL BLUE
+1900:   BLUE VIET NAM
+Addr:   so 202, đuong Pho Huyen, Thi Tran Quoc Oai, Huyen Quoc Oai, Ha Noi
+------------------------------
+[8]
+Master: CONG TY TNHH SAN XUAT DKSH VIET NAM
+1900:   CONG TY TNHH DKSH VIET NAM
+Addr:   so 31 ngo 3 Pho Thai Ha, Phuong Trung Liet, Quan Đong đa, Ha Noi
+------------------------------
+[9]
+Master: CONG TY TNHH LEAP STEAM
+1900:   LEAP STEAM
+Addr:   42 Ngo 255 Pho Vong, Phuong Đong Tam, Quan Hai Ba Trung, Ha Noi
+------------------------------
+[10]
+Master: CONG TY TNHH THUONG MAI DICH VU & SAN XUAT T&P
+1900:   T&P
+Addr:   Khu 6, Thon Vi Nhue, Xa Tien Phong, Huyen Ba Vi, Ha Noi
+------------------------------

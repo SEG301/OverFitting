@@ -1,0 +1,252 @@
+--- CHECKING 50 SAMPLES FROM data/final_data_full_reviews.jsonl ---
+
+[1]
+Master Name: CONG TY TNHH HADU GROUP
+1900 Name:   HADU VIET NAM
+Address:     So 4, ngach 44/8 Pho Bang B, Phuong Hoang Liet, Quan Hoang Mai, Ha Noi
+----------------------------------------
+[2]
+Master Name: CONG TY TNHH CMC TELECOM
+1900 Name:   CMC Telecom
+Address:     soll ngo 271 Đuong Lac Long Quan, Phuong Nghia Đo, Quan Cau Giay, Ha Noi
+----------------------------------------
+[3]
+Master Name: CONG TY TNHH GALAXY GLOBAL TECHNOLOGY
+1900 Name:   GALAXY VIET NAM
+Address:     So nha 154 lo D3, Khu đo thi Đai Kim, Phuong Đinh Cong, Quan Hoang Mai, Ha Noi
+----------------------------------------
+[4]
+Master Name: CONG TY TNHH THAM MY VIEN MAILISA
+1900 Name:   Tham My Vien Mailisa
+Address:     So 9 Ngach 2, Ngo 73 Yen Xa, Xa Tan Trieu, Huyen Thanh Tri, Ha Noi
+----------------------------------------
+[5]
+Master Name: CONG TY TNHH SOLAR SOFTWARE
+1900 Name:   Solar Viet Nam
+Address:     So 5 ngach 82/210 Kim Ma, Phuong Kim Ma, Quan Ba Đinh, Ha Noi
+----------------------------------------
+[6]
+Master Name: CONG TY TNHH FREETALK ENGLISH
+1900 Name:   Freetalk English
+Address:     Tang 9, so 381 Đoi can, Phuong cong Vi, Quan Ba Đinh, Ha Noi
+----------------------------------------
+[7]
+Master Name: CONG TY TNHH GLOBAL BLUE
+1900 Name:   BLUE VIET NAM
+Address:     so 202, đuong Pho Huyen, Thi Tran Quoc Oai, Huyen Quoc Oai, Ha Noi
+----------------------------------------
+[8]
+Master Name: CONG TY TNHH SAN XUAT DKSH VIET NAM
+1900 Name:   CONG TY TNHH DKSH VIET NAM
+Address:     so 31 ngo 3 Pho Thai Ha, Phuong Trung Liet, Quan Đong đa, Ha Noi
+----------------------------------------
+[9]
+Master Name: CONG TY TNHH LEAP STEAM
+1900 Name:   LEAP STEAM
+Address:     42 Ngo 255 Pho Vong, Phuong Đong Tam, Quan Hai Ba Trung, Ha Noi
+----------------------------------------
+[10]
+Master Name: CONG TY TNHH THUONG MAI DICH VU & SAN XUAT T&P
+1900 Name:   T&P
+Address:     Khu 6, Thon Vi Nhue, Xa Tien Phong, Huyen Ba Vi, Ha Noi
+----------------------------------------
+[11]
+Master Name: CONG TY TNHH LAC HONG GROUP
+1900 Name:   Lac Hong Software
+Address:     So 161 Đuong Huu Nghi, Thon Thach, Xa Thach Xa, Huyen Thach That, Ha Noi
+----------------------------------------
+[12]
+Master Name: CONG TY CP GIAO DUC ASKTRAINING VIET NAM
+1900 Name:   Giao Duc Asktraining
+Address:     Tang 6, Toa nha ICON4, 243A Đe La Thanh, Phuong Lang Thuong, Quan Đong đa, Ha Noi
+----------------------------------------
+[13]
+Master Name: CONG TY TNHH FTB GROUP
+1900 Name:   Ftb Group
+Address:     So 34, 36 Pho Lieu Giai, Phuong Cong Vi, Quan Ba Đinh, Ha Noi
+----------------------------------------
+[14]
+Master Name: CONG TY TNHH BRAVEBITS
+1900 Name:   BRAVEBITS VIET NAM
+Address:     Tang 11, Toa nha Đa Nang, So 169 Nguyen Ngoc Vu, Phuong Trung Hoa, Quan Cau Giay, Ha Noi
+----------------------------------------
+[15]
+Master Name: CONG TY TNHH GLOBAL INFINITY
+1900 Name:   Infinity Technologies Global
+Address:     So 15 ngach 521/43 đuong An Duong Vuong, Phuong Đong Ngac, Quan Bac Tu Liem, Ha Noi
+----------------------------------------
+[16]
+Master Name: CONG TY TNHH LE BROS
+1900 Name:   Le Bros
+Address:     273 Pho Đoi Can, Phuong Ngoc Ha, Quan Ba Đinh, Ha Noi
+----------------------------------------
+[17]
+Master Name: CONG TY TNHH VIET NAM HUMANSCAPE
+1900 Name:   Humanscape Viet Nam
+Address:     Phong 0509, Tang 5, Toa nha W1, Vinhomes West Point, đuong P, Phuong Me Tri, Quan Nam Tu Liem, Ha Noi
+----------------------------------------
+[18]
+Master Name: CONG TY TNHH DCV VIET NAM
+1900 Name:   DCV
+Address:     So 26B Pho Yet Kieu, Phuong Cua Nam, Quan Hoan Kiem, Ha Noi
+----------------------------------------
+[19]
+Master Name: CONG TY TNHH THUONG MAI GCO
+1900 Name:   GCO GROUP
+Address:     Tang 8, Toa nha 311, 313 Truong Chinh, Phuong Khuong Mai, Quan Thanh Xuan, Ha Noi
+----------------------------------------
+[20]
+Master Name: CONG TY TNHH PHU THAI GROUP
+1900 Name:   Phu Thai Group
+Address:     LK14, 25 Khu tai đinh cu Tu Hiep, Xa Tu Hiep, Huyen Thanh Tri, Ha Noi
+----------------------------------------
+[21]
+Master Name: CONG TY TNHH HORUS PRODUCTIONS
+1900 Name:   Horus Productions
+Address:     Tang 3, San dich vu thuong mai toa nha CT2D, VOV Me Tri, Phuong Me Tri, Quan Nam Tu Liem, Ha Noi
+----------------------------------------
+[22]
+Master Name: CONG TY TNHH HBD SOFTWARE
+1900 Name:   Cong Ty HBD
+Address:     So 02, day B2, ngo 126 Hoang Quoc Viet, Phuong Nghia Tan, Quan Cau Giay, Ha Noi
+----------------------------------------
+[23]
+Master Name: CONG TY TNHH SAN XUAT & THUONG MAI THUC PHAM TH
+1900 Name:   Thuc Pham TH
+Address:     So 34 ngo 178 pho Kim Hoa, Phuong Phuong Lien, Quan Đong đa, Ha Noi
+----------------------------------------
+[24]
+Master Name: CONG TY CO PHAN TAP ĐOAN ĐAU TU GIAO DUC SYDNEY VIET NAM
+1900 Name:   CONG TY CO PHAN TAP ĐOAN ĐAU TU GIAO DUC SYDNEY VIET NAM
+Address:     So 19 Le Thanh Nghi, Phuong Bach Khoa, Quan Hai Ba Trung, Ha Noi
+----------------------------------------
+[25]
+Master Name: CONG TY TNHH BRALY
+1900 Name:   Braly JSC
+Address:     So 3 Ngo 31 Dich Vong, Phuong Dich Vong, Quan Cau Giay, Ha Noi
+----------------------------------------
+[26]
+Master Name: CONG TY TNHH VERISERVE VIET NAM
+1900 Name:   VERISERVE VIET NAM
+Address:     Phong 1206, 1, Tang 12, Toa nha van phong Indochina Plaza Ha, Phuong Dich Vong Hau, Quan Cau Giay, Ha Noi
+----------------------------------------
+[27]
+Master Name: CONG TY TNHH TRENDS TECHNOLOGY
+1900 Name:   Trends & Technologies
+Address:     Toa nha Thang Long GTC, so 113, 115 Le Duan, Phuong Cua Nam, Quan Hoan Kiem, Ha Noi
+----------------------------------------
+[28]
+Master Name: CONG TY CO PHAN CONG NGHE PREP
+1900 Name:   CONG TY CO PHAN CONG NGHE PREP
+Address:     So 15 nha B, Tap the Hoc vien Canh Sat, To dan pho Hoang 16,, Phuong Co Nhue 1, Quan Bac Tu Liem, Ha Noi
+----------------------------------------
+[29]
+Master Name: CONG TY CP CHUNG KHOAN DNSE
+1900 Name:   Chung khoan DNSE
+Address:     Tang 6 toa nha Pax Sky, 63, 65 Ngo Thi Nham, Phuong Pham Đinh Ho, Quan Hai Ba Trung, Ha Noi
+----------------------------------------
+[30]
+Master Name: CONG TY TNHH CONG NGHE SICIX
+1900 Name:   Cong ty CP Cong nghe SiciX
+Address:     O17, HH1 Du an khu nha o can bo Vien kiem soat nhan dan toi c,, Phuong Xuan La, Quan Tay Ho, Ha Noi
+----------------------------------------
+[31]
+Master Name: CONG TY TNHH FORIX
+1900 Name:   Forix
+Address:     So 47 Tran Hung Đao,, Phuong Hang Bai, Quan Hoan Kiem, Ha Noi
+----------------------------------------
+[32]
+Master Name: CONG TY TNHH SAN XUAT & THUONG MAI ANNAM
+1900 Name:   ANNAM GROUP
+Address:     So 119G pho Luong Yen, To 6,, Phuong Bach Đang, Quan Hai Ba Trung, Ha Noi
+----------------------------------------
+[33]
+Master Name: CONG TY TRACH NHIEM HUU HAN HRS GROUP
+1900 Name:   HRS Group
+Address:     So 6, ngach 82/23, pho Chua Lang,, Phuong Lang Thuong, Quan Đong đa, Ha Noi
+----------------------------------------
+[34]
+Master Name: CONG TY TNHH WIR GROUP
+1900 Name:   Wir Group
+Address:     So 24 Vu Pham Ham,, Phuong Trung Hoa, Quan Cau Giay, Ha Noi
+----------------------------------------
+[35]
+Master Name: CONG TY TNHH TU VAN VA ĐAU TU GIAO DUC VIET NAM
+1900 Name:   Tu Van Va Đau Tu Giao Duc Viet Nam
+Address:     So 92, pho Dich Vong Hau, Phuong Dich Vong Hau, Quan Cau Giay, Ha Noi
+----------------------------------------
+[36]
+Master Name: CONG TY TNHH CONG NGHE GIAO DUC TOPICA VIET NAM
+1900 Name:   Cong Nghe Giao Duc TOPICA
+Address:     Tang 6, toa nha kim khi Thang Long, So 1 Luong Yen,, Phuong Bach Đang, Quan Hai Ba Trung, Ha Noi
+----------------------------------------
+[37]
+Master Name: CONG TY TNHH VMO SOFTWARE VIET NAM
+1900 Name:   VMO
+Address:     Tang 10, toa nha IDMC My Đinh, so 15 đuong Pham Hung,, Phuong My Đinh 2, Quan Nam Tu Liem, Ha Noi
+----------------------------------------
+[38]
+Master Name: CONG TY TNHH CRYPTOPIE LABO
+1900 Name:   CryptoPie Labo
+Address:     So 108 Xa Đan 2,, Phuong Nam Đong, Quan Đong đa, Ha Noi
+----------------------------------------
+[39]
+Master Name: CONG TY TNHH FPT SMART CLOUD
+1900 Name:   FPT Smart Cloud
+Address:     So 17 Pho Duy Tan, Phuong Dich Vong Hau, Quan Cau Giay, Ha Noi
+----------------------------------------
+[40]
+Master Name: CONG TY TNHH THUONG MAI VA DICH VU THINH THANG
+1900 Name:   Thuong Mai Va San Xuat Thinh Thang
+Address:     12A Vinh Phuc 3,, Phuong Lieu Giai, Quan Ba Đinh, Ha Noi
+----------------------------------------
+[41]
+Master Name: CONG TY TNHH TRI THUC MOI VIET NAM
+1900 Name:   Tri Thuc Moi
+Address:     So 7, ngo 1/8, đuong La Noi,, Phuong Duong Noi, Quan Ha Đong, Ha Noi
+----------------------------------------
+[42]
+Master Name: CONG TY TNHH HUMAN SOLUTIONS VIET NAM
+1900 Name:   Human Solutions Viet Nam
+Address:     Tang 4 Toa nha CTM Complex, So 139 Cau Giay, Phuong Quan Hoa, Quan Cau Giay, Ha Noi
+----------------------------------------
+[43]
+Master Name: CONG TY TNHH SAPO VIET NAM
+1900 Name:   SAPO Technology
+Address:     So 30, ngo 5 pho Son Tay,, Phuong Đoi Can, Quan Ba Đinh, Ha Noi
+----------------------------------------
+[44]
+Master Name: CONG TY TNHH GIAI PHAP PHAN TICH DU LIEU INSIGHT DATA
+1900 Name:   GIAI PHAP PHAN TICH DU LIEU INSIGHT DATA
+Address:     So 14 ngach 378/1 Le Duan,, Phuong Phuong Lien, Quan Đong đa, Ha Noi
+----------------------------------------
+[45]
+Master Name: CONG TY TRACH NHIEM HUU HAN VALOFE VIET NAM
+1900 Name:   VALOFE VIET NAM
+Address:     Tang 4, Thap 2 Times Tower, So 35 đuong Le Van Luong,, Phuong Nhan Chinh, Quan Thanh Xuan, Ha Noi
+----------------------------------------
+[46]
+Master Name: CONG TY TNHH DICH VU INFINITY VIET NAM
+1900 Name:   Infinity Technologies Global
+Address:     So 7, ngo 69, đuong Xuan La,, Phuong Xuan La, Quan Tay Ho, Ha Noi
+----------------------------------------
+[47]
+Master Name: CONG TY TNHH DR.JOY VIET NAM
+1900 Name:   DR.JOY VIET NAM
+Address:     Zone 3 va Zone 4, Tang 16, toa nha Van phong 789, so 147 đuo,, Phuong Nghia Đo, Quan Cau Giay, Ha Noi
+----------------------------------------
+[48]
+Master Name: CONG TY TNHH TRUYEN THONG SEODO
+1900 Name:   Truyen Thong Seodo
+Address:     Tang 4, TTTM V+, Toa Nha Hoa Binh, so 505 Minh Khai, Phuong Vinh Tuy, Quan Hai Ba Trung, Ha Noi
+----------------------------------------
+[49]
+Master Name: CONG TY TNHH OFFSPRING DIGITAL
+1900 Name:   Offspring Digital Viet Nam
+Address:     Tang 15 khu van phong, toa nha HCMCC, 249A Thuy Khue,, Phuong Thuy Khue, Quan Tay Ho, Ha Noi
+----------------------------------------
+[50]
+Master Name: CONG TY TNHH CONG NGHE VA TU ĐONG HOA ROSTEK
+1900 Name:   Cong Nghe Va Tu Đong Hoa Rostek
+Address:     Thon Yen Phu,, Xa Lien Ninh, Huyen Thanh Tri, Ha Noi
+----------------------------------------

@@ -1,0 +1,101 @@
+--- PRECISE MAPPING CHECK ---
+[1]
+Master: CONG TY TNHH KINH DOANH XUAT NHAP KHAU VA THUONG MAI QUANG MINH
+1900:   Minh Viet Toan Cau
+Addr:   So nha 4 ngo 2, Pho To Hien Thanh, Phuong Phuc La, Quan Ha Đong, Ha Noi
+------------------------------
+[2]
+Master: CONG TY TNHH THEP VA THIET BI CONG NGHIEP INSTEEL VIET NAM
+1900:   Thuong Mai Va Dich Vu Thep Nam Phat
+Addr:   Can ho 104 Nha A2 Khu tap the truong THPT Nguyen Thi Minh Khai, Pho Phuc Minh, Phuong Phuc Dien, Quan Bac Tu Liem, Ha Noi
+------------------------------
+[3]
+Master: CONG TY TNHH THUONG MAI VA SAN XUAT HANG MAY MAC MINH TRANG
+1900:   Minh Viet Toan Cau
+Addr:   So 5, Ngach 98/2 Quy Mong, Xa Yen Thuong, Huyen Gia Lam, Ha Noi
+------------------------------
+[4]
+Master: CONG TY CO PHAN THUONG MAI VA NHAP KHAU HUNG THINH PHAT
+1900:   THINH PHAT
+Addr:   So 47 Pho Ba Hang Mai, Xa Thanh Mai, Huyen Thanh Oai, Ha Noi
+------------------------------
+[5]
+Master: CONG TY TNHH THEP HUNG THINH QKL
+1900:   THINH PHAT
+Addr:   SO118 Đuong Nam Đuong, Phuong Thuong Thanh, Quan Long Bien, Ha Noi
+------------------------------
+[6]
+Master: CONG TY TNHH XAY DUNG VA TM NGOC THINH 216
+1900:   THINH PHAT
+Addr:   So nha 48A, Ngo 04, đuong Đen Ve, To dan pho 20, Phuong Phu Luong, Quan Ha Đong, Ha Noi
+------------------------------
+[7]
+Master: CONG TY TNHH PHAT TRIEN CONG NGHE PHUC TRUONG MINH
+1900:   Minh Viet Toan Cau
+Addr:   VP905, Tang 9, Khoi c, Toa nha Ho Guom Plaza, so 102 Tran Phu, Phuong Mo Lao, Quan Ha Đong, Ha Noi
+------------------------------
+[8]
+Master: CONG TY TNHH KINH DOANH THUONG MAI DICH VU VIET TOAN
+1900:   KINH DOANH F88
+Addr:   SO01 ngo 74to 11, pho Thuong Thanh, Phuong Thuong Thanh, Quan Long Bien, Ha Noi
+------------------------------
+[9]
+Master: CONG TY TNHH THUONG MAI QUANG VINH PHAT
+1900:   San Xuat Vinh Quang
+Addr:   Thon Noi, Xa Hoai Đuc, Ha Noi
+------------------------------
+[10]
+Master: CONG TY TNHH BAO MINH NGUYEN
+1900:   Minh Viet Toan Cau
+Addr:   So 82, ngo 108 pho Ngoc Ha, Phuong Ngoc Ha, Quan Ba Đinh, Ha Noi
+------------------------------
+[11]
+Master: CONG TY TNHH THUONG MAI VA DICH VU HIEU MINH
+1900:   Minh Viet Toan Cau
+Addr:   SO16 Đuong Bo Song Set, Phuong Thinh Liet, Quan Hoang Mai, Ha Noi
+------------------------------
+[12]
+Master: CONG TY TNHH CONG NGHE PHAN MEM P&T
+1900:   T&P
+Addr:   so nha 4 ngo 26, Xa Tan Trieu, Huyen Thanh Tri, Ha Noi
+------------------------------
+[13]
+Master: CONG TY CO PHAN CONG NGHE VA GIAI PHAP SO VIET NAM
+1900:   GIAI PHAP CONG NGHE VIET NAM
+Addr:   Tang 11, so 36 Hoang cau, Phuong O Cho Dua, Quan Đong đa, Ha Noi
+------------------------------
+[14]
+Master: CONG TY CO PHAN SAN XUAT VA KINH DOANH THUONG MAI QUANG VINH
+1900:   San Xuat Vinh Quang
+Addr:   So 20, Ngach 165, Ngo 750 Kim Giang, Xa Thanh Liet, Huyen Thanh Tri, Ha Noi
+------------------------------
+[15]
+Master: CONG TY TNHH GIAO DUC VA ĐAO TAO STAR EDU
+1900:   GIAO DUC VA ĐAO TAO ODIN
+Addr:   So 7, Pho Cau La, Thon Mai Sao, Xa Nguyen Trai, Huyen Thuong Tin, Ha Noi
+------------------------------
+[16]
+Master: CONG TY TNHH THUONG MAI DV MINH CUONG
+1900:   Minh Viet Toan Cau
+Addr:   Khu Thung Nhem, Thon An Khoai, Xa Phuc Tien, Huyen Phu Xuyen, Ha Noi
+------------------------------
+[17]
+Master: CONG TY TNHH XNK MINH LINH
+1900:   Minh Viet Toan Cau
+Addr:   So nha 10, ngo 50 thon Đau Lang, Xa Quang Trung, Huyen Thach That, Ha Noi
+------------------------------
+[18]
+Master: CONG TY TNHH THUONG MAI ĐO GIA DUNG TOAN CAU NHAT MINH
+1900:   Minh Viet Toan Cau
+Addr:   So nha 65A, ngo 22 Đuong Khuyen Luong, Phuong Tran Phu, Quan Hoang Mai, Ha Noi
+------------------------------
+[19]
+Master: CONG TY TNHH CONG NGHE TITAN MEDIA
+1900:   Titan Global
+Addr:   Nha 20B, ngach 40, ngo 79 đuong cau Giay, Phuong Quan Hoa, Quan Cau Giay, Ha Noi
+------------------------------
+[20]
+Master: CONG TY CO PHAN TAP ĐOAN THAI HOA HOLDINGS
+1900:   Tap đoan Hoa Phat
+Addr:   Phong 701, Tang 7 , Toa Nha Nhat An, 30D Kim Ma Thuong, Phuong cong Vi, Quan Ba Đinh, Ha Noi
+------------------------------
